@@ -1,0 +1,9 @@
+; $Id$
+core          = "6.x"
+dependencies[] = content
+dependencies[] = content_copy
+dependencies[] = fieldgroup
+dependencies[] = sirtaqui
+description   = "Create content throw given feeds"
+name          = "Sirtaqui Content Generator"
+package       = Saison d'Or

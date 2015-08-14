@@ -1,0 +1,179 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * It Generates content thinks sirtaqui feeds
+ *
+ * @author Benoit Favrel
+ */
+
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the module
+*/
+function sirtaqui_content_generator_perm() {
+  return array('administer sirtaqui content generator');
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function sirtaqui_content_generator_theme() {
+  return array(
+    'sirtaqui_content_generator_overview_field_list' => array(
+      'arguments' => array('form' => array()),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function sirtaqui_content_generator_menu() {
+	$items = array();
+
+	$items['admin/content/types/sirtaqui/new_content'] = array(
+		'title' => 'Select fields',
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_content_generator_overview_field_list'),
+		'access arguments' => array('administer sirtaqui content generator'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_content_generator.content.inc'
+	);
+	$items['admin/content/types/sirtaqui/new_content/add_taxo'] = array(
+		'page callback' => 'sirtaqui_content_generetor_add_taxo',
+		'access arguments' => array('administer sirtaqui content generator'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_content_generator.content.inc'
+	);
+	$items['admin/content/types/sirtaqui'] = array(
+		'title' => 'Generate Sirtaqui contents',
+		'description' => 'Create content type thanks to sirtaqui feeds',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_content_generator_get_feeds_id'),
+		'access arguments' => array('administer sirtaqui content generator'),
+		'type' => MENU_LOCAL_TASK,
+		'file' => 'sirtaqui_content_generator.content.inc',
+		'weight' => 6
+	);
+	
+	return $items;
+}
+
+/***
+ * SIRTAQUI CONTENT DATABASE ACTION
+ */
+
+/**
+ * 
+ * Save an sirtaqui content
+ * @param &$edit the reference of the object to save
+ * @return the status of the operations
+ */
+function sirtaqui_add_sirtaqui_content(&$edit) {
+	
+	if (!empty($edit['id']) && !empty($edit['content_type'])) {
+		drupal_write_record('sirtaqui_content', $edit, 'id');
+		module_invoke_all('sirtaqui', 'update', 'sirtaqui_content', $edit);
+		$status = SAVED_UPDATED;
+	}
+	else if (!empty($edit['id'])) {
+		$status = sirtaqui_del_sirtaqui_content($edit['id']);
+	}
+	else {
+		drupal_write_record('sirtaqui_content', $edit);
+		module_invoke_all('sirtaqui', 'insert', 'sirtaqui_content', $edit);
+		$status = SAVED_NEW;
+	}
+
+  cache_clear_all();
+
+  return $status;
+}
+
+/**
+ * Delete a sirtaqui content
+ *
+ * @param int $id
+ *   A sirtaqui content ID.
+ * @return
+ *   Constant indicating items were deleted.
+ */
+function sirtaqui_del_sirtaqui_content($id) {
+  $content = (array) sirtaqui_content_load($id);
+
+  db_query('DELETE FROM {sirtaqui_content} WHERE id = %d', $id);
+
+  module_invoke_all('sirtaqui', 'delete', 'sirtaqui_content', $content);
+
+  cache_clear_all();
+
+  return SAVED_DELETED;
+}
+
+/**
+ * Return the sirtaqui content object matching an ID.
+ *
+ * @param int $id
+ *   The sirtaqui content's ID
+ *
+ * @return
+ *   The sirtaqui content object with all of its metadata, if exists, FALSE otherwise.
+ */
+function sirtaqui_content_load($id) {
+
+    // Try to load the data and fill up the object.
+    $result = db_query('SELECT s.* FROM {sirtaqui_content} s WHERE s.id = %d', $id);
+    
+    $content = db_fetch_object($result);
+
+	// Return FALSE if this sirtaqui content does not exist.
+	return !empty($content->id) ? $content : FALSE;
+}
+
+/**
+ * Return sirtaqui contents object matching a content type and a language
+ *
+ * @param int $id
+ *   The sirtaqui content's ID
+ *
+ * @return
+ *   The sirtaqui content object with all of its metadata, if exists, FALSE otherwise.
+ */
+function sirtaqui_content_load_by_type($type, $lang = '') {
+
+	if ($lang == '') {
+		global $language;
+		krumo($language);
+		$lang = $language->language;
+	}
+	// Try to load the data and fill up the object.
+	$result = db_query("SELECT s.* FROM {sirtaqui_content} s WHERE s.content_type = '%s' AND s.language = '%s'", $type, $lang);
+
+    $content = db_fetch_object($result);
+
+	// Return FALSE if this sirtaqui content does not exist.
+	return !empty($content->id) ? $content : FALSE;
+}
+
+/**
+ * Return all sirtaqui content type.
+ *
+ * @return
+ *   An array with all sirtaqui content objects, if exists, FALSE otherwise.
+ */
+function sirtaqui_content_load_all() {
+
+    // Try to load the data and fill up the object.
+    $result = db_query('SELECT DISTINCT s.content_type, s.* FROM {sirtaqui_content} s GROUP BY s.content_type');
+    
+    $contents = array();
+    while ($content = db_fetch_object($result)) {
+    	$contents[] = $content;
+    }
+
+	// Return FALSE if the array is empty.
+	return !empty($contents) ? $contents : FALSE;
+}

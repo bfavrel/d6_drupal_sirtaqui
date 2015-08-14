@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * Implementation of hook_schema().
+ */
+function sirtaqui_displays_schema() {
+    $schema = array();
+
+    $schema['sirtaqui_displays'] = array(
+        'fields' => array(
+            'nid' => array(
+                'description' => 'Primary Key',
+                'type' => 'int',
+                'unsigned' => TRUE,
+                'not null' => TRUE,
+                'default' => 0,
+            ),
+            'display' => array(
+                'type' => 'text',
+                'size' => 'tiny',
+                'not null' => TRUE,
+                'default' => '',
+            ),
+        ),
+        'primary key' => array('nid'),        
+    );    
+
+    return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function sirtaqui_displays_install() {
+    drupal_install_schema('sirtaqui_displays');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function sirtaqui_displays_uninstall() {
+    drupal_uninstall_schema('sirtaqui_displays');
+}

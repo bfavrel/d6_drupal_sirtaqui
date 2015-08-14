@@ -1,0 +1,300 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * It Generates content thinks sirtaqui feeds
+ *
+ * @author Benoit Favrel
+ */
+
+/**
+ * First bootstrap phase: initialize configuration.
+ */
+global $_sirtaqui_import_update_frequency;
+
+/**
+ * Implementation of hook_init()
+ */
+function sirtaqui_import_init() {
+
+	global $_sirtaqui_import_update_frequency;
+
+	$_sirtaqui_import_update_frequency = array(
+			'none' => 'None',
+			'daily' => 'Daily',
+			'weekly' => 'Weekly',
+			'monthly' => 'Monthly',
+	);
+}
+
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the module
+*/
+function sirtaqui_import_perm() {
+  return array('site content sirtaqui import');
+}
+
+function sirtaqui_import_theme() {
+
+	return array(
+	    'sirtaqui_import_list' => array(
+	      	'arguments' => array(),
+			'template' => 'sirtaqui-import-list'
+	    ),
+	    'sirtaqui_overview_sirtaqui_contents' => array(
+	      	'arguments' => array(),
+	    ),
+	    'sirtaqui_edit_sirtaqui_content' => array(
+	      	'arguments' => array(),
+	    ),
+	    'sirtaqui_edit_sirtaqui_content_filters' => array(
+	      	'arguments' => array(),
+	    ),
+        'sirtaqui_import_params_title_fields' => array(
+            'file' => drupal_get_path('module', 'sirtaqui_import') . '/sirtaqui_import.admin.inc',
+        ),
+	);
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function sirtaqui_import_menu() {
+	$items = array();
+
+	/*
+	$items['admin/content/sirtaqui/import_list'] = array(
+		'title' => 'SIRTAqui feeds import',
+		'description' => '',
+		'page callback' => 'theme',
+		'page arguments' => array('sirtaqui_import_list'),
+		'access arguments' => array('administer site configuration sirtaqui_import'),
+		'type' => MENU_NORMAL_ITEM,
+		'file' => 'sirtaqui_import.admin.inc'
+	);*/
+	$items['admin/content/sirtaqui'] = array(
+		'title' => 'SIRTAqui contents',
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_overview_sirtaqui_contents'),
+		'access arguments' => array('site content sirtaqui import'),
+		'type' => MENU_NORMAL_ITEM,
+		'file' => 'sirtaqui_import.admin.inc'
+	);
+	$items['admin/content/sirtaqui/edit'] = array(
+		'title' => 'SIRTAqui feeds import',
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_edit_sirtaqui_content'),
+		'access arguments' => array('site content sirtaqui import'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_import.admin.inc'
+	);
+	$items['admin/content/sirtaqui/edit_filters'] = array(
+		'title' => 'Content import filters',
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_edit_sirtaqui_content_filters'),
+		'access arguments' => array('site content sirtaqui import'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_import.admin.inc'
+	);
+	$items['admin/content/sirtaqui/content_listing/edit/js/delete_import_filter'] = array(
+		'title' => '',
+		'description' => '',
+		'page callback' => 'sirtaqui_delete_sirtaqui_content_filter',
+		'access arguments' => array('site content sirtaqui import'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_import.admin.inc'
+	);
+	$items['admin/content/sirtaqui/delete'] = array(
+		'title' => 'SIRTAqui feeds import',
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_content_confirm_delete'),
+		'access arguments' => array('site content sirtaqui import'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_import.admin.inc'
+	);
+	$items['admin/content/sirtaqui/update'] = array(
+		'title' => 'SIRTAqui feeds import',
+		'description' => '',
+		'page callback' => 'sirtaqui_import_secure_content',
+		'access arguments' => array('site content sirtaqui import'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_import.admin.inc'
+	);
+	$items['content/sirtaqui/import'] = array(
+		'title' => 'SIRTAqui feeds import',
+		'description' => '',
+		'page callback' => 'sirtaqui_import_content',
+		//'access arguments' => array('administer site configuration sirtaqui_import'),
+		'access callback' => TRUE,
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_import.admin.inc'
+	);
+    $items['admin/content/sirtaqui/params'] = array(
+		'title' => "Parameters",
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+        'page arguments' => array('sirtaqui_import_params', 4),
+		'access arguments' => array('site content sirtaqui import'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_import.admin.inc'
+	);
+	// Onglet de mise à jours dans la page du node
+	$items['node/%node/sirtaqui_update'] = array(
+		'title' => 'Update',
+		'page callback' => 'sirtaqui_content_update',
+		'page arguments' => array(1),
+		'access callback' => 'sirtaqui_import_update_content_access_check',
+		'access arguments' => array('site content sirtaqui import', 1),
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 6,
+		'file' => 'sirtaqui_import.admin.inc',
+	);
+
+	return $items;
+}
+
+function sirtaqui_import_update_content_access_check($access, $node) {
+
+	if (preg_match('/sirtaqui_/', $node->type) && $node->fnid[0]['value'] && user_access($access)) {
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+/**
+ * Implement hook_cron()
+ */
+function sirtaqui_import_cron() {
+    
+	ini_set('max_execution_time', 12800);
+    
+    module_load_include('inc', 'sirtaqui_import', 'sirtaqui_import.admin');
+    
+	global $base_url;
+	$default_language = language_default();
+
+	// Hash MD5 de sécurité
+	$hash = "83b863bb9b479595dfed63c01512f324";
+
+	//@TODO On ne fait que les mises à jours nécessaire en fonction de la fréquence
+	$frequency = array();
+	$hour = intval(date('H'));
+	$day = intval(date('N'));
+	$month_day = intval(date('j'));
+
+	// Les mises à jours ne se font qu'entre 0h et 6h
+	if ($hour >= 0 && $hour < 6) {
+		$frequency[] = 'daily';
+		if ($day == 1) {
+			//Mise à jour hebdomadaire
+			$frequency[] = 'weekly';
+		}
+		if ($month_day == 1) {
+			$frequency[] = 'monthly';
+		}
+	}
+	else {
+		return;
+	}
+
+	// On met d'abord à jours les contenus de la langue principale (pour que les contenus traduits aient le contenu de référence)
+	$sirtaqui_content = sirtaqui_get_all_enable_sirtaqui_contents($frequency, $default_language->language);
+
+    // On met à jours les contenus dans les autres langues
+    $sirtaqui_content = array_merge($sirtaqui_content, sirtaqui_get_all_enable_sirtaqui_contents($frequency));
+
+    foreach ($sirtaqui_content as $content) {
+        sirtaqui_import_content($hash, $content->id, $from_cron = true, false);
+    }
+    
+    return;
+
+}
+
+/***
+ * SIRTAQUI CONTENT ACTION
+ */
+/**
+ * Return an array of distinct sirtaqui contents.
+ * @return array(content_type => $obj) un seul objet par type de contenu
+ */
+function sirtaqui_get_sirtaqui_contents() {
+
+	$db_result = db_query("SELECT c.id, c.* FROM {sirtaqui_content} c");
+
+	$result = array();
+
+	while ($content = db_fetch_object($db_result)) {
+		$result[$content->content_type] = $content;
+	}
+
+  return $result;
+
+}
+/**
+ * Return an array of all sirtaqui contents.
+ *
+ */
+function sirtaqui_get_all_sirtaqui_contents($language = '') {
+
+	if ($language == '')
+		$db_result = db_query("SELECT c.id, c.* FROM {sirtaqui_content} c");
+	else
+		$db_result = db_query("SELECT c.id, c.* FROM {sirtaqui_content} c WHERE c.language = '%s'", $language);
+
+	$result = array();
+
+	while ($content = db_fetch_object($db_result)) {
+		$result[] = $content;
+	}
+
+  return $result;
+
+}
+/**
+ * Return an array of all sirtaqui contents enable
+ *
+ */
+function sirtaqui_get_all_enable_sirtaqui_contents($frequency, $language = '') {
+
+	if ($language == '') { // on a déjà mis à jour les contenus en langue par défaut
+            global $base_url;
+            $default_language = language_default();
+            $default_language = $default_language->language;
+
+            $db_result = db_query("SELECT c.id, c.* FROM {sirtaqui_content} c WHERE c.language != '%s' AND c.enable IN (".db_placeholders($frequency, 'text').")", array_merge(array($default_language), $frequency));
+	}
+	else {
+		$db_result = db_query("SELECT c.id, c.* FROM {sirtaqui_content} c WHERE c.language = '%s' AND c.enable IN (".db_placeholders($frequency, 'text').")", array_merge(array($language), $frequency));
+	}
+	$result = array();
+
+	while ($content = db_fetch_object($db_result)) {
+		$result[] = $content;
+	}
+
+  return $result;
+
+}
+
+/**
+ * Implementation of hook_sirtaqui_settings.
+ */
+function sirtaqui_import_sirtaqui_settings() {
+    return array(
+        'feed_infos' => array(
+            'title' => 'Feed infos',
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array('sirtaqui_import_admin_settings'),
+            'file' => 'sirtaqui_import.admin.inc',
+        ),
+    );
+}
+

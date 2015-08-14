@@ -1,0 +1,11 @@
+; $Id$
+core          = "6.x"
+description   = "Create SIRTAqui content listing with SIRTAqui feeds"
+name          = "Sirtaqui content listing"
+package       = Saison d'Or
+
+dependencies[] = content
+dependencies[] = number
+dependencies[] = optionwidgets
+dependencies[] = sirtaqui
+dependencies[] = so_forms

@@ -1,0 +1,1714 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * It Generates content listing
+ *
+ * @author Benoit Favrel
+ */
+
+/**
+ * Implementation of hook_form().
+ * This hook has to be implemented in order to display defined content type in list
+ *
+ */
+function sirtaqui_content_listing_form(&$node, $form_state) {
+    return array();
+}
+
+/**
+ * Implementation of hook_sirtaqui_settings.
+ */
+function sirtaqui_content_listing_sirtaqui_settings() {
+    return array(
+        'configuration' => array(
+            'title' => 'Configuration',
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array('sirtaqui_content_listing_admin_settings'),
+            'file' => 'sirtaqui_content_listing.admin.inc',
+        ),
+    );
+}
+
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the module
+*/
+function sirtaqui_content_listing_perm() {
+  return array('administer sirtaqui content listing', 'administer SCL advanced features');
+}
+
+function sirtaqui_content_listing_init() {
+    if(arg(0) == 'admin') {
+        drupal_add_js(drupal_get_path('module', 'sirtaqui_content_listing') . '/scripts/scl_admin.js', 'module', 'header');
+    }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function sirtaqui_content_listing_theme($existing, $type, $theme, $path) {
+
+    return array(
+        'sirtaqui_overview_sirtaqui_content_listings' => array(
+            'arguments' => array(),
+        ),
+        'sirtaqui_create_sirtaqui_content_listing' => array(
+            'arguments' => array(),
+        ),
+        'sirtaqui_edit_sirtaqui_content_listing' => array(
+            'arguments' => array(),
+        ),
+        'sirtaqui_content_listing_filter_field' => array(
+            'arguments' => array(),
+        ),
+
+        'sirtaqui_content_listing_nodes_filter' => array(
+            'arguments' => array(),
+        ),
+
+        'sirtaqui_content_listing_edit_advanced_filters' => array(
+            'arguments' => array(),
+        ),
+
+        'sirtaqui_content_listing_edit_sorting' => array(
+            'arguments' => array(),
+        ),
+
+        'sirtaqui_listing' => array(
+            'arguments' => array('clid' => null, 'nodes' => null, 'paginate' => null),
+            'template' => 'sirtaqui_listing',
+            'file' => 'theme.inc',
+            'path' => $path . '/theme',
+        ),
+        'node' => array(
+            'file' => 'theme.inc',
+            'path' => $path . '/theme',
+        ),
+    );
+}
+
+/**
+ * Implementation of hook_theme_registry_alter().
+ * Adds the module's '/theme' path suggestion to theme('node'), so it will able to find 'node-listing.tpl.php'
+ *
+ * @param $theme_registry The entire cache of theme registry information, post-processing.
+ */
+function sirtaqui_content_listing_theme_registry_alter(&$theme_registry) {
+    $original_path = array_shift($theme_registry['node']['theme paths']);
+    $new_path = drupal_get_path('module', 'sirtaqui_content_listing') . '/theme';
+    array_unshift($theme_registry['node']['theme paths'], $original_path, $new_path);
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function sirtaqui_content_listing_menu() {
+	$items = array();
+
+	$items['admin/content/sirtaqui/content_listing'] = array(
+		'title' => 'SIRTAqui contents listing',
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_overview_sirtaqui_content_listings'),
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_NORMAL_ITEM,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+	$items['admin/content/sirtaqui/content_listing/list'] = array(
+		'title' => 'Content listings',
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_DEFAULT_LOCAL_TASK,
+		'weight' => 0,
+	);
+	$items['admin/content/sirtaqui/content_listing/new'] = array(
+		'title' => 'SIRTAqui create contents listing',
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_create_sirtaqui_content_listing'),
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 1,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+	$items['admin/content/sirtaqui/content_listing/new/js/add_sirtaqui_content'] = array(
+		'description' => '',
+		'page callback' => 'sirtaqui_content_listing_add_content_type_select',
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+	$items['admin/content/sirtaqui/content_listing/new/js/delete_sirtaqui_content'] = array(
+		'description' => '',
+		'page callback' => 'sirtaqui_content_listing_delete_content_type',
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+	$items['admin/content/sirtaqui/content_listing/edit/%ctlid'] = array(
+		'title' => 'SIRTAqui edit contents listing',
+        'title callback' => 'sirtaqui_content_listing_title',
+        'title arguments' => array(5),
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_edit_sirtaqui_content_listing', 5),
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+	$items['admin/content/sirtaqui/content_listing/edit/%ctlid/content'] = array(
+		'title' => 'Edit contents listing',
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_DEFAULT_LOCAL_TASK,
+		'weight' => 0,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+    $items['admin/content/sirtaqui/content_listing/edit/%ctlid/list'] = array(
+		'title' => 'Listings',
+		'description' => '',
+		'page callback' => 'drupal_goto',
+		'page arguments' => array('admin/content/sirtaqui/content_listing'),
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_LOCAL_TASK,
+		'file' => 'sirtaqui_content_listing.admin.inc',
+        'weight' => -1,
+	);
+	$items['admin/content/sirtaqui/content_listing/edit/%ctlid/filters'] = array(
+		'title' => 'Filters',
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_edit_filters_sirtaqui_content_listing', 5),
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 1,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+
+        $items['admin/content/sirtaqui/content_listing/edit/%ctlid/advanced_filters'] = array(
+		'title' => 'Advanced filters',
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_content_listing_edit_advanced_filters', 5),
+		'access arguments' => array('administer SCL advanced features'),
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 2,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+        $items['admin/content/sirtaqui/content_listing/edit/%ctlid/sorting'] = array(
+		'title' => 'Sorting',
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_content_listing_edit_sorting', 5),
+		'access arguments' => array('administer SCL advanced features'),
+		'type' => MENU_LOCAL_TASK,
+		'weight' => 3,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+	$items['admin/content/sirtaqui/content_listing/edit/js/update_filter_input'] = array(
+		'description' => '',
+		'page callback' => 'sirtaqui_content_listing_update_filter_input',
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+	$items['admin/content/sirtaqui/content_listing/edit/js/autocomplete_field'] = array(
+		'description' => '',
+		'page callback' => 'sirtaqui_content_listing_autocomplete_field',
+		'page arguments' => array(),
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+	$items['admin/content/sirtaqui/content_listing/edit/js/add_sirtaqui_content_filter'] = array(
+		'description' => '',
+		'page callback' => 'sirtaqui_content_listing_add_content_filter',
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+	$items['admin/content/sirtaqui/content_listing/delete'] = array(
+		'title' => 'SIRTAqui delete content listing',
+		'description' => '',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('sirtaqui_delete_sirtaqui_content_listing'),
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_CALLBACK,
+		'file' => 'sirtaqui_content_listing.admin.inc'
+	);
+	$items['admin/content/sirtaqui/delete_all_links'] = array(
+		'title' => 'SIRTAqui delete all listing links',
+		'description' => '',
+		'page callback' => 'sirtaqui_content_listing_delete_all_links',
+		'access arguments' => array('administer sirtaqui content listing'),
+		'type' => MENU_NORMAL_ITEM
+	);
+    $items['admin/content/sirtaqui/content_listing/edit/%ctlid/search_engine'] = array(
+    	'title' => 'Search form',
+    	'description' => '',
+    	'page callback' => 'sirtaqui_content_listing_search_form_interface',
+        'page arguments' => array(5),
+        'access arguments' => array('administer sirtaqui content listing'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 4,
+	);
+
+	return $items;
+}
+
+function ctlid_to_arg($arg) {
+	return $arg;
+}
+
+function sirtaqui_content_listing_title($clid) {
+    $cl = sirtaqui_load_sirtaqui_content_listing($clid);
+
+    return t("Edit '@listing' listing", array('@listing' => $cl->content_listing_name));
+}
+
+/***
+ * SIRTAQUI CONTENT LISTING MENU ACTIONS
+*/
+
+function sirtaqui_content_listing_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+
+    if(variable_get('scl_search_store_inputs', true) != true && $node->type != 'listing' && $a4 == true && $op == 'view') {
+
+        so_forms_get_user_inputs('sirtaqui_content_listing', $_SESSION['last_listing_clid'] . '@search', true); // 'true' => clear data
+
+    } elseif ($node->type == 'listing' && $op == 'update') {
+
+		/*
+		$node_link = menu_node_get_links($node->nid);
+		if ($node_link) {
+			$node_link = array_shift($node_link);
+			$mlid = $node_link->mlid;
+			$clid = $node->field_content_listing[0]['value'];
+
+			$nids = scl_compile_listing($clid, array('paginate' => FALSE, 'search' => FALSE, 'ignore_post' => TRUE));
+			foreach ($nids as $nid) {
+				$links = menu_node_get_links($nid);
+
+				$found = FALSE;
+				if ($links) {
+					foreach ($links as $link) {
+						if ($link->plid == $mlid) {
+							$found = TRUE;
+							break;
+						}
+					}
+				}
+				if (!$found) {
+					// On ajoute la fiche dans l'arborescence
+					$n = node_load($nid, null, TRUE);
+
+					$link = array();
+					$link['menu_name'] = $node_link->menu_name; // Fill out your menu name or just use navigation
+					$link['link_title'] = $n->title; // What appears in the menu link
+					$link['link_path'] = 'node/' . $n->nid; // Or you can use a path alias as well
+					$link['plid'] = $mlid; // The parent link ID
+					$link['hidden'] = 1; // Not visible in menu
+					menu_link_save($link);
+
+				}
+			}
+		}
+		*/
+	}
+}
+
+function sirtaqui_content_listing_delete_all_links() {
+	$scls = sirtaqui_get_sirtaqui_content_listings();
+
+	foreach ($scls as $scl) {
+		$nids = scl_compile_listing($scl->id, array('paginate' => FALSE, 'search' => FALSE, 'ignore_post' => TRUE));
+		foreach ($nids as $nid) {
+			$links = menu_node_get_links($nid);
+
+			if ($links) {
+				foreach ($links as $link) {
+					menu_link_delete($link->mlid);
+				}
+			}
+		}
+	}
+}
+
+function sirtaqui_content_listing_form_menu_overview_form_alter(&$form, $form_state) {
+
+	$form['hide_disabled'] = array(
+			'#type' => 'button',
+			'#value' => t('Hide disabled entries'),
+			'#weight' => 0,
+	);
+	$form['show_disabled'] = array(
+			'#type' => 'button',
+			'#value' => t('Show disabled entries'),
+			'#weight' => 0,
+	);
+}
+
+/***
+ * SIRTAQUI CONTENT LISTING DATABASE ACTION
+ */
+
+/**
+ *
+ * Save a sirtaqui content listing
+ * @param &$edit the reference of the object to save
+ * @return the status of the operations
+ */
+function sirtaqui_add_sirtaqui_content_listing(&$edit) {
+
+	if (!empty($edit['id']) && !empty($edit['content_listing_type'])) {
+		drupal_write_record('sirtaqui_content_listing', $edit, 'id');
+		module_invoke_all('sirtaqui', 'update', 'sirtaqui_content_listing', $edit);
+		$status = SAVED_UPDATED;
+	}
+	else if (!empty($edit['id'])) {
+		$status = sirtaqui_del_sirtaqui_content_listing($edit['id']);
+	}
+	else {
+		drupal_write_record('sirtaqui_content_listing', $edit);
+		module_invoke_all('sirtaqui', 'insert', 'sirtaqui_content_listing', $edit);
+		$status = SAVED_NEW;
+	}
+
+  cache_clear_all();
+
+  return $status;
+}
+/**
+ * Return an array of sirtaqui content listings.
+ * @return array($obj)
+ */
+function sirtaqui_get_sirtaqui_content_listings() {
+
+	$db_result = db_query("SELECT c.id, c.* FROM {sirtaqui_content_listing} c ORDER BY content_listing_name ASC");
+
+	$result = array();
+
+	while ($content = db_fetch_object($db_result)) {
+		$result[] = $content;
+	}
+
+  return $result;
+}
+
+/**
+ * Provides options for CCK select field in 'sirtaqui_listing' content type
+ *
+ * @return array
+ */
+function sirtaqui_content_listing_get_cck_field_options() {
+    $options = array();
+
+    $result = db_query("SELECT c.id, c.* FROM {sirtaqui_content_listing} c ORDER BY content_listing_name ASC");
+
+    while($row = db_fetch_array($result)) {
+        $options[$row['id']] = $row['content_listing_name'];
+    }
+
+    return $options;
+}
+
+/**
+ * Return the sirtaqui content listing object matching an ID.
+ *
+ * @param int $id
+ *   The sirtaqui content listing's ID
+ *
+ * @return
+ *   The sirtaqui content listing object with all of its metadata, if exists, FALSE otherwise.
+ */
+function sirtaqui_load_sirtaqui_content_listing($id) {
+
+    // Try to load the data and fill up the object.
+    $result = db_query('SELECT s.* FROM {sirtaqui_content_listing} s WHERE s.id = %d', $id);
+
+    $content = db_fetch_object($result);
+
+	// Return FALSE if this sirtaqui content does not exist.
+	return !empty($content->id) ? $content : FALSE;
+}
+
+/**
+ * Delete a sirtaqui content listing
+ *
+ * @param int $id
+ *   A sirtaqui content listing ID.
+ * @return
+ *   Constant indicating items were deleted.
+ */
+function sirtaqui_del_sirtaqui_content_listing($id) {
+  $content = (array) sirtaqui_load_sirtaqui_content_listing($id);
+
+  db_query('DELETE FROM {sirtaqui_content_listing} WHERE id = %d', $id);
+
+  module_invoke_all('sirtaqui', 'delete', 'sirtaqui_content_listing', $content);
+
+  cache_clear_all();
+
+  return SAVED_DELETED;
+}
+
+/**
+ * DEPRECATED !
+ * Kept for back-compatibility. Please, use scl_compile_listing() instead
+ *
+ * Builds and executes query
+ *
+ * @param int $clid
+ * @param boolean $paginate : should query use pagination ?
+ * @param boolean $use_search : should query use search results ?
+ * @param boolean $force : force the query generation, even in the case of a form submission
+ *
+ * @return array nids
+ */
+function sirtaqui_content_listing_generate_listing($clid, $paginate = true, $use_search = true, $force = FALSE) {
+    $options = array(
+        'paginate' => $paginate,
+        'filters' => true,
+        'search' => $use_search,
+        'ignore_post' => $force,
+    );
+
+    return scl_compile_listing($clid, $options);
+}
+
+/**
+ * Builds and executes query
+ *
+ * @param int $clid
+ * @param array $options :
+ *          - extract : array of strings : fields to extract in addition to nids. Used for calculated values or for extract sirtaqui fields.
+ *            If non-f fields are used then fields-f will be extracted too. Else only requested fields-f will be extracted.
+ *            Joins clauses can be processed only if no alias is set for the field to extract. In this case each table column will be extracted and its name used as alias (..._value, ..._value2, ..._fid, etc.)
+ *            IMPORTANT : CCK multiple fields mustn't be used : results are unpredictable !
+ *          - filters : boolean : will query use the listing basic filters ?
+ *          - nodes_filter : boolean : will query use the nodes filter ?
+ *          - advanced_filters : boolean : will query use the listing advanced filters ?
+ *          - status : boolean/null : status of the nodes (if 'null', status clause will not be processed)
+ *          - search : boolean : will query use the search ?
+ *          - sorting : boolean : will query use the ORDER BY clause ?
+ *          - hook_query : boolean : will query can be altered by modules ?
+ *          - limit : unsigned int : limit the number of results by page (0 = use default settings)
+ *          - paginate : boolean : will query use pagination (as defined in settings) or compile the full listing ?
+ *          - ignore_post : boolean : must listing be compiled even in the case of a form submission ?
+ *          - debug : boolean/string : do query be shown ? (boolean or a string to display as source of the debug call)
+ *          - ... : any type : any other options which will be available for hook_scl_search() and hook_scl_query()
+ *
+ * @param array $query : existing query to use, instead of a fresh one. After compilation, this variable contains the debugging query string.
+ *
+ * @return array of arrays : extracted rows indexed by nids
+ */
+function scl_compile_listing($clid, $options = array(), &$query = array()) {
+
+    if(empty($clid)) {return array();}
+
+    $default_options = array(
+        'extract' => array(),
+        'filters' => true,
+        'nodes_filter' => true,
+        'advanced_filters' => true,
+        'status' => 1,
+        'search' => true,
+        'sorting' => true,
+        'hook_query' => true,
+        'limit' => 0,
+        'paginate' => true,
+        'ignore_post' => false, // TODO : valeur mal nommée : devrait être à TRUE par defaut, en concordance avec le nom
+        'debug' => false,
+    );
+
+    $options = array_merge($default_options, $options);
+
+    // inutile de tout charger si c'est une soumission de formulaire, qui sera fatalement suivi d'une redirection
+    // sauf si c'est intentionnel
+    if($_SERVER['REQUEST_METHOD'] == 'POST' && $options['ignore_post'] == false) {return array();}
+
+    if(empty($query)) {$query = sirtaqui_content_listing_init_query();}
+
+    $content_listing = sirtaqui_load_sirtaqui_content_listing($clid);
+
+    if($content_listing == false){return array();}
+
+    $content_listing->sirtaqui_content = unserialize($content_listing->sirtaqui_content);
+    $content_listing->filters = unserialize($content_listing->filters);
+    $content_listing->cache = unserialize($content_listing->cache);
+
+    $modules_hook_query = array_filter(variable_get('hook_scl_query_order', array()));
+
+    // Si le hook sirtaqui_content_listing_scl_query() est désactivé ou que l'option interdise l'exécution des hook_sql_query,
+    // on traite la clause de sorting ici.
+    // Si à ce stade une requête est déjà fournie, on ne modifie pas sa clause ORDER BY si elle existe (ex: preview de la mécanique de tri).
+    if((empty($modules_hook_query['sirtaqui_content_listing']) || $options['hook_query'] != true)
+            && !empty($content_listing->cache['sorts']['order_by'])
+            && empty($query['order_by'])) {
+
+        sirtaqui_content_listing_scl_query($query, $options, $content_listing, true); // le dernier paramètre signale qu'on est hors du processus "normal" de traitement de ce hook
+
+    } elseif(!empty($query['order_by'])) {
+        // on interdit au hook sirtaqui_content_listing_scl_query() d'être exécuté et d'ajouter sa propre clause ORDER BY
+        unset($modules_hook_query['sirtaqui_content_listing']);
+    }
+
+    // contents types and filters
+    if($options['filters'] == true) {
+        _sirtaqui_content_listing_filters_sql_fragment($query, $content_listing->sirtaqui_content, $content_listing->filters);
+    }
+
+    // nodes filter
+    if($options['nodes_filter'] == true && !empty($content_listing->filters['nodes_filter'])) {
+        $query['where'][] = "(n.tnid IN (" . db_placeholders($content_listing->filters['nodes_filter'], 'int') . ") OR n.nid IN (" . db_placeholders($content_listing->filters['nodes_filter'], 'int') . "))";
+        $query['args'] = array_merge($query['args'], $content_listing->filters['nodes_filter'], $content_listing->filters['nodes_filter']);
+    }
+
+    // advanced filters
+    if($options['advanced_filters'] == true) {
+        if(!empty($content_listing->cache['advanced_filters'])) {
+            $query = array_merge_recursive($query, $content_listing->cache['advanced_filters']);
+        }
+    }
+
+    // search
+    // TODO : D7 : sortir la mécanique de recherche dans un module indépendant
+    if($options['search'] == true) {
+        _sirtaqui_content_listing_search_sql_fragment($query, $options, $content_listing);
+    }
+
+    // status
+    if($options['status'] !== null) {
+        $query_fragment_data = sirtaqui_content_listing_prepare_query_fragment_data('status@node');
+        $query['where'][] = $query_fragment_data->fields[0] . "=" . $options['status'];
+    }
+
+    // les modules peuvent intervenir sur la requête, juste avant la compilation
+    if($options['hook_query'] == true) {
+
+        $modules_hook_query = array_flip($modules_hook_query);
+        ksort($modules_hook_query);
+
+        foreach($modules_hook_query as $module) {
+            $function = $module . '_scl_query';
+            $function($query, $options, $content_listing);
+        }
+    }
+
+    // champs à extraire
+    if(!empty($options['extract'])) {
+
+        $options['extract'] = array_filter($options['extract']);
+
+        foreach($options['extract'] as $extract) {
+            $extract_fragment = sirtaqui_content_listing_prepare_query_fragment_data($extract . "@sirtaqui");
+
+            if(empty($extract_fragment->fields)) {
+                $query['fields'][] = $extract;
+                continue;
+            }
+
+            $query['join'] = array_merge($query['join'], $extract_fragment->joins);
+
+            reset($extract_fragment->infos);
+
+            // afin d'économiser les ressources MySQL, on laisse le soin au destinataire de la requête de traiter les champs f/non-f
+            foreach($extract_fragment->fields as $field) {
+                $column = each($extract_fragment->infos);
+
+                if(empty($column)) {continue;}
+
+                $query['fields'][] = $field . " AS " . $column['key'];
+            }
+        }
+    }
+
+    // certains fragments proviennent du cache, le générateur de fragment data ne les a pas vu passer. Les tables n'ont donc pas
+    // pu être enregistrées. On peut donc se retrouver avec des JOIN en double, et donc des alias en double -> error sql
+    $query['join'] = array_unique($query['join']);
+
+    $where_clause = !empty($query['where']) ? " WHERE " . implode(' AND ', $query['where']) : '';
+    $join_clause = !empty($query['join']) ? implode(' ', $query['join']) : '';
+    $group_clause = !empty($query['group_by']) ? " GROUP BY " . implode(',', $query['group_by']) : '';
+    $having_clause = !empty($query['having']) ? " HAVING " . implode(' AND ', $query['having']) : '';
+
+    $query_string_tail = " FROM {node} n " . $join_clause . $where_clause . $group_clause . $having_clause;
+
+    // on ne compte que les nids, et on n'a pas besoin des clauses de mise en forme (ORDER, LIMIT, etc.)
+    $count_query_string = "SELECT DISTINCT n.nid" . $query_string_tail;
+    $count_query_string = db_rewrite_sql($count_query_string, 'n', 'nid', $query['args']);
+
+    // il faut donner une directive de tri à MySQL pour les fiches de même ordre (ou en l'absence d'ordre), pour avoir toujours les mêmes listings
+    array_push($query['order_by'], "n.nid ASC");
+    $order_by = implode(', ', array_filter($query['order_by']));
+
+    $query_string_tail .= !empty($order_by) && $options['sorting'] == true ? " ORDER BY " . $order_by : '';
+    $query_string_tail .= $options['paginate'] == false && $options['limit'] > 0 ? " LIMIT 0," . $options['limit'] : '';
+
+    $query['fields'] = array_unique($query['fields']);
+    array_unshift($query['fields'], 'n.nid');
+    $fields = implode(', ', $query['fields']);
+    $query_string = "SELECT DISTINCT " . $fields . $query_string_tail;
+
+    $query_string = arg(0) != 'admin' ? db_rewrite_sql($query_string, 'n', 'nid', $query['args']) : $query_string;
+
+    if($options['paginate'] == true) {
+        // la requête est trop complexe pour laisser pager_query() générer automatiquement la requête de comptage
+        $count_query = "SELECT count(*) FROM (" . $count_query_string . ") AS count_query";
+
+        $num_results_by_page = $options['limit'] > 0 ? $options['limit'] : variable_get('scl_num_results_by_page', 10);
+
+        $result = pager_query($query_string, $num_results_by_page, 0, $count_query, $query['args']);
+
+    } else {
+        $result = db_query($query_string, $query['args']);
+    }
+
+    $nodes = array();
+
+    while($row = db_fetch_array($result)) {
+        $nodes[$row['nid']] = $row;
+    }
+
+    if(!$options['paginate']) {
+        global $pager_total_items;
+        $pager_total_items[0] = count($nodes);
+    }
+
+    // DEBUG : pour tester la requête directement dans PHPMA
+    // On n'affiche que sur le front-end : les outils d'admin sont déjà dotés d'une preview de la requête.
+    if(($options['debug'] != false || variable_get('scl_debug_query', false) == true) && arg(0) != 'admin') {
+        global $user;
+
+        if(variable_get('scl_debug_query', false) == true) {
+            $debug_source = "(from SCL settings) ";
+        } elseif($options['debug'] !== true) {
+            $debug_source = "(" . $options['debug'] . ") ";
+        }
+
+        if($user->uid == 1){drupal_set_message("<strong>DEBUG " . $debug_source . "- SCL query : </strong><br />" . preg_replace('#[{}]#', '', vsprintf($query_string, $query['args'])));}
+
+        if(module_exists('devel')) {
+            dpm($nodes, "<strong>SCL query results</strong>");
+        }
+    }
+
+    // on peuple $query avec la requête de debug
+    $query = preg_replace('#[{}]#', '', vsprintf($query_string, $query['args']));
+
+    $_SESSION['last_listing_clid'] = $clid;
+
+    return $nodes;
+}
+
+/**
+ * Helper : generates the SQL fragment for filters
+ *
+ * @param array $query
+ * @param array $listing_content_types
+ * @param array $listing_filters
+ */
+function _sirtaqui_content_listing_filters_sql_fragment(&$query, $listing_content_types, $listing_filters) {
+
+    $filters_where = array();
+
+    foreach((array)$listing_content_types as $content_type) {
+
+        $content_type_where = array();
+        $content_type_fragment_data = sirtaqui_content_listing_prepare_query_fragment_data('type@node');
+
+        foreach((array)$listing_filters['filters'][$content_type] as $field => $value) {
+            $where = array();
+
+            $query_fragment_data = sirtaqui_content_listing_prepare_query_fragment_data($field . '@sirtaqui', $content_type);
+            $query['join'] = array_merge($query['join'], $query_fragment_data->joins);
+
+            $field_infos = content_fields($field, $content_type);
+
+            if($field_infos['type'] == 'content_taxonomy') {
+                $tids = array();
+
+                // BUG : problème : si le terme contient des virgules le terme est scindé et la requête est fausse.
+                $terms = explode(',', $value);
+                array_walk($terms, function(&$val){$val = trim($val);});
+
+                $req = "SELECT tid FROM {term_data} WHERE vid=%d AND CAST(name AS BINARY) IN(" . db_placeholders($terms, 'text') . ")";
+                $result = db_query($req, array_merge((array)$field_infos['vid'], $terms));
+
+                while($row = db_fetch_array($result)) {
+                    $tids[] = $row['tid'];
+                }
+
+                // BUG : voir le problème ci-dessus
+                if(empty($tids)) {continue;}
+
+                foreach($query_fragment_data->fields as $field) {
+                    $where[] = $field . " IN(" . db_placeholders($tids, 'int') . ")";
+                    $query['args'] = array_merge($query['args'], $tids);
+                }
+
+            } else {
+                $values = explode(',', $value);
+                array_walk($values, function(&$val){$val = trim($val);});
+
+                foreach($query_fragment_data->fields as $field) {
+                    $where[] = $field . " IN(" . db_placeholders($values, 'text') . ")";
+                    $query['args'] = array_merge($query['args'], $values);
+                }
+            }
+
+            if(!empty($where)) {
+                $content_type_where[] = "(" . implode(' OR ', $where) . ")";
+            }
+        }
+
+        if(empty($content_type_where)) {$content_type_where[] = 1;}
+
+        $filters_where[] = "(" . $content_type_fragment_data->fields[0] . "='" . $content_type . "' AND (" . implode(' AND ', $content_type_where) . "))";
+    }
+
+    $query['where'][] = "(" . implode(' OR ', $filters_where) . ")";
+}
+
+/**
+ * Provides a fully themed listing
+ *
+ * @param int $clid
+ * @return string
+ */
+function scl_embed_listing($clid, $paginate = TRUE){
+    $nodes = array();
+    $nids = scl_compile_listing($clid, array('paginate' => $paginate));
+
+    foreach($nids as $nid => $row) {
+        $nodes[$nid] = node_load($row['nid'], null, true);
+
+        unset($row['nid']);
+
+        $nodes[$nid] = (object)array_merge((array)$nodes[$nid], $row);
+        $nodes[$nid]->in_listing = $paginate;
+    }
+
+    return theme('sirtaqui_listing', $clid, $nodes, $paginate);
+}
+
+/**
+ * Builds a query fragment data object (fields + joins) for node based queries ONLY
+ * Generates double joins and double fields needed for sirtaqui query.
+ * Avoids tables to be joined more than once.
+ * Called without argument, resets the tables pool.
+ *
+ * @param string $field : field@table. For sirtaqui fields, use non-f-field@sirtaqui for double-fields processing.
+ *      If field_f@sirtaqui is provided, only the field_f will be processed. Because it won't possible to retrieve non-f-field name.
+ * @param string $content_type : the context of the field within : only use for '@sirtaqui' fields
+ *
+ * @return \stdClass fragment object :
+ *          - joins : sql LEFT JOIN strings array. Tables are in db_query() format.
+ *          - fields : fields names strings array. Fields names are prefixed with their table alias.
+ *          - tables : tables names strings array.
+ *          - infos : CCK fields infos array.
+ */
+function sirtaqui_content_listing_prepare_query_fragment_data($field = null, $content_type = null) {
+
+    static $tables_pool = array();
+
+    if($field == null) {
+        $tables_pool = array();
+        return;
+    }
+
+    $fragment_data = new stdClass();
+
+    $field = explode('@', $field);
+
+    if($field[1] == 'sirtaqui') {
+
+        $fragment_data->tables = array();
+        $fragment_data->fields = array();
+
+        $field_infos = content_fields($field[0], $content_type);
+        $database_infos_field = content_database_info($field_infos);
+
+        $field_f_infos = content_fields(normalize_field_name(str_replace('field_', 'field_f_', $field[0])), $content_type);
+        $database_infos_field_f = content_database_info($field_f_infos);
+
+        $table = $database_infos_field['table'];
+        $fragment_data->tables[] = $table;
+
+        foreach($database_infos_field['columns'] as $column) {
+            if(preg_match('#_format$#', $column['column']) == true) {continue;}
+
+            $fragment_data->fields[] = $table . "." . $column['column'];
+            $fragment_data->infos[$column['column']] = $field_infos;
+        }
+
+        $table_f = $database_infos_field_f['table'];
+
+        foreach($database_infos_field_f['columns'] as $column) {
+            if(preg_match('#_format$#', $column['column']) == true) {continue;}
+
+            $fragment_data->fields[] = $table_f . "." . $column['column'];
+            $fragment_data->infos[$column['column']] = $field_f_infos;
+        }
+
+        $fragment_data->joins = array();
+
+        if(!isset($tables_pool[$table])) {
+            $fragment_data->joins[] = "LEFT JOIN {" . $table . "} AS " . $table . " ON " . $table . ".nid=n.nid";
+            $tables_pool[$table] = 1;
+        }
+
+        // si on a fourni un champ_f, la table_f générée ne sera pas valide
+        if(!empty($database_infos_field_f['columns']) && $table_f != $table && !isset($tables_pool[$table_f])) {
+            $fragment_data->joins[] = "LEFT JOIN {" . $table_f . "} AS " . $table_f . " ON " . $table_f . ".nid=n.nid";
+
+            $fragment_data->tables[] = $table_f;
+            $tables_pool[$table_f] = 1;
+        }
+
+    } elseif($field[1] == 'node') {
+
+        $fragment_data->joins = array();
+        $fragment_data->tables = array('n');
+        $fragment_data->fields = array(
+            "n." . $field[0]
+        );
+
+    } else {
+
+        if(!isset($tables_pool[$table])) {
+            $fragment_data->joins[] = "LEFT JOIN {" . $field[1] . "} AS " . $field[1] . " ON " . $field[1] . ".nid=n.nid";
+            $fragment_data->tables = array($table);
+            $tables_pool[$table] = 1;
+        }
+
+        $fragment_data->fields = array(
+            $field[1] . "." . $field[0]
+        );
+    }
+
+    return $fragment_data;
+}
+
+/**
+ *  Resets the tables pool and returns a preformated query array
+ */
+function sirtaqui_content_listing_init_query() {
+    sirtaqui_content_listing_prepare_query_fragment_data();
+
+    return array(
+        'fields' => array(),
+        'join' => array(),
+        'where' => array(),
+        'group_by' => array(),
+        'having' => array(),
+        'order_by' => array(),
+        'args' => array(),
+    );
+}
+
+/**
+ * Helper : maps specific CCK data types on one or more generic sirtaqui_search custom ones
+ * Without parameter, returns all mappings.
+ *
+ * @param string $cck_data_type
+ * @return string or array
+ */
+function sirtaqui_content_listing_map_cck_types($cck_data_type = null) {
+    $types = array(
+        'text' => array('text', 'numerical'),
+        'content_taxonomy' => 'taxonomy',
+        'number_decimal' => 'numerical',
+        'number_integer' => 'numerical',
+        'number_float' => 'numerical',
+        'date' => 'dates',
+        //'datestamp' => 'date',                non_implémenté pour le moment
+        'datetime' => 'dates',
+    );
+
+    return $cck_data_type != null ? $types[$cck_data_type] : $types;
+}
+
+/**
+ * Implementation of hook_so_forms()
+ */
+function sirtaqui_content_listing_so_forms($module, $id) {
+
+    if($module != 'sirtaqui_content_listing') {return;} // on n'est pas sensé fournir de champs aux autres modules (pour le moment)
+
+    $parsed_id = explode('@', $id);
+    $clid = $parsed_id[0];
+
+    if($parsed_id[1] == 'search') {
+
+        $fields = array();
+
+        $sirtaqui_content_listing = sirtaqui_load_sirtaqui_content_listing($clid);
+        $sirtaqui_content_listing->sirtaqui_content = unserialize($sirtaqui_content_listing->sirtaqui_content);
+
+        $content_types = array();
+
+        foreach ($sirtaqui_content_listing->sirtaqui_content as $sirtaqui_content) {
+            $content_types[$sirtaqui_content] = content_types($sirtaqui_content);
+        }
+
+        $fields_types_allowed = array_keys(sirtaqui_content_listing_map_cck_types());
+
+        $fields = array();
+
+        // Les choix des champs se fera sur les champs sirtaqui non-f, présents dans tous les types de contenus du listing
+        foreach ($content_types as $content_type) {
+
+            if(count($content_types) > 1) {
+                $objettour = db_result(db_query("SELECT objettour_code FROM {sirtaqui_content} WHERE content_type='%s'", str_replace('sirtaqui_', '', $content_type['type'])));
+                $objettour = $objettour != '' ? " (" . $objettour . ")" : null;
+            }
+
+            foreach ($content_type['fields'] as $name => $field) {
+                if (!preg_match('/field_f_/', $name) && in_array($field['type'], $fields_types_allowed)) { // utiliser les champs sirtaqui non-f
+
+                    if(empty($fields[$name])) {
+                        $label = t($field['widget']['label']) . $objettour;
+                    } elseif(!empty($fields[$name]) && $objettour != null) {
+                        $label = t($field['widget']['label']) . " (" . t("Common") . ")";
+                    } else {
+                        $label = t($field['widget']['label']);
+                    }
+
+                    $fields[$name] = array(
+                        'label' => $label,
+                        'type' => sirtaqui_content_listing_map_cck_types($field['type']),
+                        'context' => $clid,
+                        'callbacks' => array(
+                            'values' => 'sirtaqui_content_listing_search_field_values',
+                            'configuration' => 'sirtaqui_content_listing_search_field_configuration',
+                        )
+                    );
+
+                    if(in_array('text', (array)$fields[$name]['type']) || in_array('taxonomy', (array)$fields[$name]['type'])) {
+                        $fields[$name]['callbacks'] = array_merge($fields[$name]['callbacks'], array(
+                            'render' => 'sirtaqui_content_listing_search_field_render',
+                            'js' => 'sirtaqui_content_listing_search_field_js'
+                        ));
+                    }
+
+                    if(in_array('dates', (array)$fields[$name]['type'])) {
+                        $fields[$name]['callbacks'] = array_merge($fields[$name]['callbacks'], array(
+                            'render' => 'sirtaqui_content_listing_search_field_render',
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    $labels = array();
+    foreach ($fields as $key => $field) {
+        $labels[$key] = stripAccents($field['label']);
+    }
+    array_multisort($labels, SORT_ASC, $fields);
+
+    return array(
+        'fields_definitions' => $fields,
+        'types_definitions' => array(
+            'taxonomy' => array(
+                'label' => 'Text',
+                'class' => 'FormFieldTaxonomy',
+                'path' => drupal_get_path('module', 'sirtaqui_content_listing') . '/forms_plugins/fields',
+            ),
+        ),
+    );
+}
+
+/**
+ * so_forms callback : search fields values.
+ * Also used by JS callback (autocompletion).
+ *
+ * @param array $field_infos
+ * @param string $langcode
+ * @param array $configuration : stored results of module custom configuration form submission
+ * @param string $autocomplete : the term for autocompletion
+ *
+ * @return array
+ */
+function sirtaqui_content_listing_search_field_values($field_infos, $langcode, $configuration, $autocomplete = null) {
+    $values = array();
+
+    $query = sirtaqui_content_listing_init_query();
+
+    $content_listing = sirtaqui_load_sirtaqui_content_listing($field_infos['field_context']);
+    $content_listing->sirtaqui_content = unserialize($content_listing->sirtaqui_content);
+    $content_listing->filters = unserialize($content_listing->filters);
+    $content_listing->cache = unserialize($content_listing->cache);
+
+    // content_types and filters
+    _sirtaqui_content_listing_filters_sql_fragment($query, $content_listing->sirtaqui_content, $content_listing->filters);
+
+    // nodes filter
+    if(!empty($content_listing->filters['nodes_filter'])) {
+        $query['where'][] = "(n.tnid IN (" . db_placeholders($content_listing->filters['nodes_filter'], 'int') . ") OR n.nid IN (" . db_placeholders($content_listing->filters['nodes_filter'], 'int') . "))";
+        $query['args'] = array_merge($query['args'], $content_listing->filters['nodes_filter'], $content_listing->filters['nodes_filter']);
+    }
+
+    // advanced filters
+    if(!empty($content_listing->cache['advanced_filters'])) {
+        $query = array_merge_recursive($query, $content_listing->cache['advanced_filters']);
+    }
+
+    if($autocomplete != null) {
+        $query_fragment_data = sirtaqui_content_listing_prepare_query_fragment_data('status@node');
+        $query['where'][] = $query_fragment_data->fields[0] . "=1";
+    }
+
+    // node table for language
+    $query_fragment_data = sirtaqui_content_listing_prepare_query_fragment_data('language@node');
+    $query['where'][] = $query_fragment_data->fields[0] . "='%s'";
+    $query['args'][] = $langcode;
+
+    // field joins
+    $query_fragment_data = sirtaqui_content_listing_prepare_query_fragment_data($field_infos['field_name'] . '@sirtaqui');
+    $query['join'] = array_merge($query['join'], $query_fragment_data->joins);
+    $field = $query_fragment_data->fields[0];
+    $field_f = $query_fragment_data->fields[1];
+
+    $field_cck_infos = current($query_fragment_data->infos);
+
+    // on prend en compte le cas où seul un des deux champs sirtaqui a été créé.
+    if(empty($field)) {
+        $field = $field_f;
+    } elseif(empty($field_f)) {
+        $field_f = $field;
+    }
+
+    if($autocomplete != null) {
+        $query['where'][] = "(" . $field . " LIKE('%%%s%%') OR " . $field_f . " LIKE('%%%s%%'))";
+
+        $autocomplete = preg_replace('#[\s-&()_+\!,\:;\.]#', '_', trim($autocomplete));
+        $query['args'][] = $autocomplete;
+        $query['args'][] = $autocomplete;
+    }
+
+    $query_string_tail = " FROM {node} n " . implode(' ', $query['join']) . " WHERE " . implode(' AND ', $query['where']);
+
+    $query_string = "(SELECT " . $field . " AS value" . $query_string_tail . ")";
+    $query_string .= " UNION DISTINCT";
+    $query_string .= " (SELECT " . $field_f . " AS value" . $query_string_tail . ")";
+    $query_string .= " ORDER BY value ASC";
+
+    // double-requête => double-arguments
+    $query['args'] = array_merge($query['args'], $query['args']);
+
+    // DEBUG : pour tester la requête directement dans PHPMA
+    //global $user; if($user->uid == 1){drupal_set_message(preg_replace('#[{}]#', '', vsprintf($query_string, $query['args'])));}
+
+    $result = db_query($query_string, $query['args']);
+
+    while($row = db_fetch_array($result)) {
+        if($row['value'] == null) {continue;}
+
+        if($field_infos['field_type'] == 'taxonomy') {
+            $req = "SELECT name FROM {term_data} WHERE tid=" . $row['value'];
+            $values[] = array(
+                'value' => $row['value'],
+                'alias' => db_result(db_query($req)),
+            );
+        } else {
+            $values[] =  $row['value'];
+        }
+    }
+
+    if($field_infos['field_type'] == 'taxonomy') {
+        $aliases = array();
+        foreach ($values as $key => $value) {
+            $aliases[$key] = $value['alias'];
+        }
+        array_multisort($aliases, SORT_ASC, $values);
+
+    } elseif(!empty($field_cck_infos['allowed_values']) || !empty($field_cck_infos['allowed_values_php'])) {
+
+        $allowed_values = content_allowed_values($field_cck_infos);
+
+        foreach ($values as $key => &$value) {
+            $value = array(
+                'value' => $value,
+                'alias' => $allowed_values[$value],
+            );
+        }
+    }
+
+    return $values;
+}
+
+/**
+ * Configuration form callback for so_forms field config form.
+ * Add option 'AND/OR' to widgets with multiple choices.
+ *
+ * @param array $field_infos
+ * @param string $langcode
+ * @param array $configuration
+ *
+ * @return array form elements to add
+ */
+function sirtaqui_content_listing_search_field_configuration($field_infos, $langcode, $configuration) {
+
+    $form = array();
+    $form['#weight'] = -2;
+
+    switch($field_infos['widget_name']) {
+        case 'textfield':
+            module_load_include('inc', 'so_forms', 'so_forms.admin');
+            $options = so_forms_modules_fields_list('sirtaqui_content_listing:' . $field_infos['field_context'] . '@search', 'sirtaqui_content_listing', $field_infos['field_type'], null);
+
+            // on retire le champ actuel de la liste
+            unset($options[$field_infos['field_module']][$field_infos['field_module'] . ':' . $field_infos['field_name'] . ':' . $field_infos['field_context']]);
+
+            $form['secondary_fields'] = array(
+                '#type' => 'select',
+                '#title' => t("Search results in this fields also"),
+                '#multiple' => true,
+                '#size' => 4,
+                '#options' => $options,
+                '#default_value' => !empty($configuration['secondary_fields']) ? $configuration['secondary_fields'] : '',
+                '#weight' => -3,
+            );
+
+            if($field_infos['field_type'] == 'text') {
+                $form['matching_mode'] = array(
+                    '#type' => 'radios',
+                    '#title' => t("Results matching"),
+                    '#default_value' => !empty($configuration['matching_mode']) ? $configuration['matching_mode'] : 'contain',
+                    '#options' => array(
+                        'contain' => t("Results contain the term"),
+                        'start' => t("Results start by the term"),
+                        'match' => t("Results match the term"),
+                    ),
+                    '#required' => true,
+                    '#weight' => -2,
+                );
+
+                $form['autocomplete'] = array(
+                    '#type' => 'textfield',
+                    '#title' => t("Use autocompletion"),
+                    '#default_value' => (int)$configuration['autocomplete'],
+                    '#size' => 1,
+                    '#description' => t("Minimum number of letters to type before triggering.<br />'0' = autocompletion disabled"),
+                    '#weight' => -1,
+                );
+
+                // Pour le moment, on n'implémente pas l'autocompletion pour les champs issus d'autres modules (tels que 'Node').
+                // Du coup, on va pas demander au gens d'entrer des valeurs (complexes) exactes au caractère près.
+                // Pareil pour les champs de type 'taxonomy' et les champs secondaires : trop lourd (et pas le temps)
+                if($field_infos['field_module'] != 'sirtaqui_content_listing' || $field_infos['field_type'] == 'taxonomy') {
+                    unset($form['matching_mode']['#options']['match']);
+                    unset($form['secondary_fields']);
+                }
+
+            } elseif($field_infos['field_type'] == 'numerical') {
+
+                $form['operator'] = array(
+                    '#type' => 'select',
+                    '#title' => t("Results have to be..."),
+                    '#options' => array(
+                        'equal' => t("equal at entered value"),
+                        'different' => t("different from entered value"),
+                        'lower' => t("lower than entered value"),
+                        'lower_equal' => t("lower or equal than entered value"),
+                        'greater' => t("greater than entered value"),
+                        'greater_equal' => t("greater or equal than entered value"),
+                    ),
+                    '#default_value' => $configuration['operator'],
+                );
+            }
+
+            break;
+
+        case 'checkboxes':
+        case 'select':
+        case 'onoff':
+        case 'radios':
+            $form['query_mode'] = array(
+                '#type' => 'radios',
+                '#title' => t("Result mode"),
+                '#default_value' => !empty($configuration['query_mode']) ? $configuration['query_mode'] : 'OR',
+                '#options' => array(
+                    'OR' => t("Results have to match at least one selected option"),
+                    'AND' => t("Results have to match all selected options"),
+                ),
+                '#required' => true,
+            );
+            $form['#weight'] = -1;
+
+            break;
+
+        case 'datefields':
+            $form['results_constraints'] = array(
+                '#type' => 'checkboxes',
+                '#title' => t("Show the results which"),
+                '#default_value' => !empty($configuration['results_constraints']) ? $configuration['results_constraints'] : array('surrounding', 'end_in', 'start_in'),
+                '#options' => array(
+                    'surrounding' => t("have their both dates surrounding the searched period"),
+                    'start_in' => t("have at least their start date in the searched period"),
+                    'end_in' => t("have at least their end date in the searched period"),
+                    'surrounded' => t("have their both dates surrounded by the searched period") . "*",
+                ),
+                '#required' => true,
+                '#description' => "*" . t("last option results are necessarily included in those of its two preceding options.<br />Hence, it is only applicable as a constraint if they aren't checked."),
+            );
+            $form['#weight'] = 10;
+            break;
+    }
+
+    return $form;
+}
+
+/**
+ * so_forms callback : alter form elements before rendering
+ *
+ * @param array $field_infos
+ * @param string $langcode
+ * @param array $configuration
+ * @param array $element
+ *
+ * @return array altered element
+ */
+function sirtaqui_content_listing_search_field_render($field_infos, $langcode, $configuration, $element) {
+
+    // adds autocomplete feature to textfields
+    if($configuration['autocomplete'] == true) {
+        $element['#autocomplete_path'] = $configuration['js_path'] . '/autocomplete';
+    }
+
+    // adds date popup to datefields widget
+    if($field_infos['widget_name'] == 'datefields' && module_exists('date_popup')) {
+
+        $element['from'] = array_merge($element['from'], array(
+            '#type' => 'date_popup',
+            '#date_format' => 'd/m/Y',
+            '#date_year_range' => '0:+2',
+        ));
+
+        $element['to'] = array_merge($element['to'], array(
+            '#type' => 'date_popup',
+            '#date_format' => 'd/m/Y',
+            '#date_year_range' => '0:+2',
+        ));
+    }
+
+    return $element;
+}
+
+/**
+ * so_forms callback : JS process
+ *
+ * @param array $field_infos
+ * @param string $langcode
+ * @param array $configuration
+ * @param string $op
+ * @param string $term
+ *
+ * return array
+ */
+function sirtaqui_content_listing_search_field_js($field_infos, $langcode, $configuration, $op, $term = null) {
+
+    switch($op) {
+        case 'autocomplete':
+            if(strlen($term) < $configuration['autocomplete']) {break;} // on économise un peu les ressources
+
+            if(empty($langcode)) {
+                global $language;
+                $langcode = $language->language;
+            }
+
+            $values = sirtaqui_content_listing_search_field_values($field_infos, $langcode, $configuration, $term);
+
+            foreach((array)$configuration['secondary_fields'] as $field) {
+                if(empty($field)) {continue;}
+
+                $secondary_field_infos = $field_infos;
+                $field = explode(':', $field);
+
+                $secondary_field_infos['field_name'] = $field[1];
+                $secondary_field_infos['field_context'] = $field[2];
+                $secondary_field_infos['field_module'] = $field[0];
+
+                $values = array_merge($values, sirtaqui_content_listing_search_field_values($secondary_field_infos, $langcode, $configuration, $term));
+            }
+
+            if(empty($values)) {return array();}
+
+            sort($values);
+
+            return array_combine($values, $values);
+
+            break;
+    }
+
+    return array();
+}
+
+/**
+ * Implementation of hook_so_forms() for node
+ */
+function node_so_forms($module, $id) {
+
+    if($module != 'sirtaqui_content_listing') {return;}
+
+    $fields = array(
+        'fields_definitions' => array(
+            'title' => array(
+                'label' => 'Title',
+                'type' => 'text',
+                'callbacks' => array(
+                    'configuration' => 'sirtaqui_content_listing_search_field_configuration',
+                ),
+            ),
+        ),
+    );
+
+    return $fields;
+}
+
+/**
+ * The search engine build form
+ */
+function sirtaqui_content_listing_search_form_interface($clid) {
+    // Compatibilité : si le listing existe déjà lors de la mise à jour - à supprimer lors de la migration D7
+    if(variable_get('scl_search_compat_mode', true) == true) {
+        $form_params = so_forms_infos('sirtaqui_content_listing', $clid . '@search');
+
+        if(empty($form_params['secured_sfid'])) {
+            $form_name = db_result(db_query("SELECT content_listing_name FROM {sirtaqui_content_listing} WHERE id=%d", $clid));
+
+            $configuration = array(
+                'name' => $form_name,
+                'memorize' => true,
+                'advanced' => true,
+                'api_only' => false,
+                'no_groups' => false,
+                'buttons' => array(
+                    'submit' => "Search",
+                    'reset' => "Reset",
+                ),
+                'perms' => array(
+                    'configure' => 'administer sirtaqui content listing',
+                    'display' => 'access content',
+                ),
+            );
+
+            so_forms_create('sirtaqui_content_listing', $clid . '@search', $configuration);
+        }
+    }
+
+    return(so_forms_configure('sirtaqui_content_listing', $clid . '@search'));
+}
+
+/**
+ * Implementation of hook_scl_create
+ */
+function sirtaqui_content_listing_scl_create($content_listing) {
+
+    // On crée le formulaire de recherche:
+    $configuration = array(
+        'name' => $content_listing->content_listing_name,
+        'memorize' => true,
+        'advanced' => true,
+        'api_only' => false,
+        'no_groups' => false,
+        'buttons' => array(
+            'submit' => "Search",
+            'reset' => "Reset",
+        ),
+        'perms' => array(
+            'configure' => 'administer sirtaqui content listing',
+            'display' => 'access content',
+        ),
+    );
+
+    so_forms_create('sirtaqui_content_listing', $content_listing->id . '@search', $configuration);
+}
+
+/**
+ * Implementation of hook_scl_search()
+ */
+function sirtaqui_content_listing_scl_search($field, &$query, &$compiler_options, $matching_modes) {
+
+    $where = array();
+    $having = array();
+
+    $matching_mode = isset($field['configuration']['matching_mode']) ? $matching_modes[$field['configuration']['matching_mode']] : $matching_modes['contain'];
+
+    $query_fragment_data = sirtaqui_content_listing_prepare_query_fragment_data($field['field_name']. '@sirtaqui');
+    $query['join'] = array_merge($query['join'], $query_fragment_data->joins);
+
+    switch($field['field_type']) {
+        case 'text':
+        case 'taxonomy':
+            switch($field['widget']) {
+
+                case 'textfield':
+                    // on remplace les espace et les caractères spéciaux par le wildcard SQL "_"
+                    $input_value = preg_replace('#[\s-&()_+\!,\:;\.]#', '_', trim($field['values'][0]));
+
+                    if($field['field_type'] == 'taxonomy') {
+
+                        $field_infos = content_fields($field['field_name']);
+
+                        $req = "SELECT tid FROM {term_data} WHERE vid=%d AND name LIKE '" . $matching_mode . "'";
+                        $result = db_query($req, $field_infos['vid'], $input_value);
+
+                        $taxo_values = array();
+
+                        while($row = db_fetch_array($result)) {
+                            $taxo_values[] = $row['tid'];
+                        }
+
+                    }
+
+                    foreach($query_fragment_data->fields as $key => $sql_field) {
+                        if(!empty($taxo_values)) {
+                            $where[] = $query_fragment_data->fields[$key] . " IN(" . db_placeholders($taxo_values, 'int') . ")";
+                            $query['args'] = array_merge($query['args'], $taxo_values);
+                        } else {
+                            $where[] = $query_fragment_data->fields[$key] . " LIKE '" . $matching_mode . "'";
+                            $query['args'][] = $input_value;
+                        }
+                    }
+
+                    if(!empty($where)) {
+                        $query['where'][] = "(" . implode(' OR ', $where) . ")";
+                    }
+
+                    break;
+
+                default:
+
+                    foreach($query_fragment_data->fields as $key => $sql_field) {
+
+                        $sub_where = array();
+
+                        foreach((array)$field['values'] as $value_set) {
+
+                            $sub_where[] = $sql_field . " IN(" . db_placeholders($value_set, 'text') . ")";
+                            $query['args'] = array_merge($query['args'], (array)$value_set);
+                        }
+
+                        if($field['configuration']['query_mode'] == 'AND') {
+                            $query['group_by'][] = $query_fragment_data->tables[$key] . '.nid';
+                            $having[] = "COUNT(" . $query_fragment_data->tables[$key] . '.nid' . ")>=" . count((array)$field['values']);;
+                        }
+
+                        $where[] = "(" . implode(' OR ', $sub_where) . ")";
+                    }
+
+                    if(!empty($having)) {
+                        $query['having'][] = "(" . implode(' OR ', $having) . ")";
+                    }
+
+                    if(!empty($where)) {
+                        $query['where'][] = "(" . implode(' OR ', $where) . ")";
+                    }
+            }
+
+            break;
+
+        case 'dates':
+            switch($field['widget']) {
+                case 'datefields':
+
+                    if($field['values']['from'] == null) {$field['values']['from'] = '1970-01-01';}
+                    if($field['values']['to'] == null) {$field['values']['to'] = '3000-01-01';}
+
+                    if($field['values']['from'] > $field['values']['to']) {
+                        $temp = $field['values']['from'];
+                        $field['values']['from'] = $field['values']['to'];
+                        $field['values']['to'] = $temp;
+                    }
+
+                    if(!empty($field['configuration']['results_constraints']['surrounding'])) {
+                        $where[] = "(DATE(" . $query_fragment_data->fields[0] . ")<='%s' AND DATE(" . $query_fragment_data->fields[1] . ")>='%s')";
+                        $query['args'] = array_merge($query['args'], array_values((array)$field['values']));
+                        $where[] = "(DATE(" . $query_fragment_data->fields[2] . ")<='%s' AND DATE(" . $query_fragment_data->fields[3] . ")>='%s')";
+                        $query['args'] = array_merge($query['args'], array_values((array)$field['values']));
+                    }
+
+                    if(!empty($field['configuration']['results_constraints']['start_in'])) {
+                        $where[] = "(DATE(" . $query_fragment_data->fields[0] . ")>='%s' AND DATE(" . $query_fragment_data->fields[0] . ")<='%s')";
+                        $query['args'] = array_merge($query['args'], array_values((array)$field['values']));
+                        $where[] = "(DATE(" . $query_fragment_data->fields[2] . ")>='%s' AND DATE(" . $query_fragment_data->fields[2] . ")<='%s')";
+                        $query['args'] = array_merge($query['args'], array_values((array)$field['values']));
+                    }
+
+                    if(!empty($field['configuration']['results_constraints']['end_in'])) {
+                        $where[] = "(DATE(" . $query_fragment_data->fields[1] . ")>='%s' AND DATE(" . $query_fragment_data->fields[1] . ")<='%s')";
+                        $query['args'] = array_merge($query['args'], array_values((array)$field['values']));
+                        $where[] = "(DATE(" . $query_fragment_data->fields[3] . ")>='%s' AND DATE(" . $query_fragment_data->fields[3] . ")<='%s')";
+                        $query['args'] = array_merge($query['args'], array_values((array)$field['values']));
+                    }
+
+                    if(!empty($field['configuration']['results_constraints']['surrounded']) && (empty($field['configuration']['results_constraints']['start_in']) && empty($field['configuration']['results_constraints']['end_in']))) {
+                        $where[] = "(DATE(" . $query_fragment_data->fields[0] . ")>='%s' AND DATE(" . $query_fragment_data->fields[1] . ")<='%s')";
+                        $query['args'] = array_merge($query['args'], array_values((array)$field['values']));
+                        $where[] = "(DATE(" . $query_fragment_data->fields[2] . ")>='%s' AND DATE(" . $query_fragment_data->fields[3] . ")<='%s')";
+                        $query['args'] = array_merge($query['args'], array_values((array)$field['values']));
+                    }
+
+                    if(!empty($where)) {
+                        $query['where'][] = "(" . implode(' OR ', $where) . ")";
+                    }
+
+                    break;
+            }
+
+            break;
+
+        case 'numerical':
+
+            $sql_operator = array(
+                'equal' => '=',
+                'different' => '!=',
+                'lower' => '<',
+                'lower_equal' => '<=',
+                'greater' => '>',
+                'greater_equal' => '>=',
+            );
+
+            switch($field['widget']) {
+                case 'textfield':
+                    foreach($query_fragment_data->fields as $key => $sql_field) {
+                        $where[] = $query_fragment_data->fields[$key] . $sql_operator[$field['configuration']['operator']] . "%d";
+                        $query['args'][] = $field['values'][0];
+                    }
+
+                    if(!empty($where)) {
+                        $query['where'][] = "(" . implode(' OR ', $where) . ")";
+                    }
+
+                    break;
+            }
+
+            break;
+    }
+}
+
+/**
+ * Implementation of hook_scl_search() for node
+ */
+function node_scl_search($field, &$query, &$compiler_options, $matching_modes) {
+    $matching_mode = isset($field['configuration']['matching_mode']) ? $matching_modes[$field['configuration']['matching_mode']] : $matching_modes['contain'];
+
+    $query_fragment_data = sirtaqui_content_listing_prepare_query_fragment_data($field['field_name']. '@node');
+    $query['where'][] = $query_fragment_data->fields[0] . " LIKE '" . $matching_mode ."'";
+    $query['args'][] = preg_replace('#[\s-&()_+\!,\:;\.]#', '_', trim($field['values'][0]));
+}
+
+/**
+ * Dispatch search fields to modules for processing
+ */
+function _sirtaqui_content_listing_search_sql_fragment(&$query, &$compiler_options, $content_listing) {
+
+    // TODO : ATTENTION ! Si on a deux listings dotés d'au moins un form, il va y avoir un problème...
+    if(variable_get('scl_search_store_inputs', true) != true && $content_listing->id != $_SESSION['last_listing_clid']) {
+        so_forms_get_user_inputs('sirtaqui_content_listing', $_SESSION['last_listing_clid'] . '@search', true); // 'true' => clear data
+    }
+
+    $matching_modes = array(
+        'contain' => '%%%s%%',
+        'start' => '%s%%',
+        'match' => '%s',
+    );
+
+    $user_inputs = (array)so_forms_get_user_inputs('sirtaqui_content_listing', $content_listing->id . '@search');
+
+    // les premiers champs du form de recherchent doivent se trouver en dernier, ainsi, les modules correspondants vont pouvoir
+    // supplanter les éléments de requête des champs moins importants.
+    $user_inputs = array_reverse($user_inputs);
+
+    foreach($user_inputs as $field) {
+
+        // on sauvegarde les clauses WHERE existantes et on initialise le container
+        $backup_where = array_splice($query['where'], 0);
+        $search_where = array();
+
+        // on exécute d'abord la requête sur les éventuels champs secondaires, afin que le champ principal conserve sa priorité de supplantation)
+        foreach((array)$field['configuration']['secondary_fields'] as $secondary_field_infos) {
+            $secondary_field_infos = explode(':', $secondary_field_infos);
+
+            $secondary_field = $field;
+            unset($secondary_field['configuration']['secondary_fields']);
+
+            $secondary_field['secondary_field'] = true;
+            $secondary_field['module_name'] = $secondary_field_infos[0];
+            $secondary_field['field_name'] = $secondary_field_infos[1];
+            $secondary_field['field_context'] = $secondary_field_infos[2];
+
+            $function = $secondary_field['module_name'] . '_scl_search';
+
+            if(function_exists($function)) {
+                $function($secondary_field, $query, $compiler_options, $matching_modes, $content_listing);
+            }
+
+            // on assemble les clauses WHERE générées
+            $search_where[] = implode(' AND ', array_splice($query['where'], 0));
+        }
+
+        $function = $field['module_name'] . '_scl_search';
+
+        if(function_exists($function)) {
+            $function($field, $query, $compiler_options, $matching_modes, $content_listing);
+
+            // on assemble le paquet de clauses WHERE du champ principal
+            $search_where[] = implode(' AND ', array_splice($query['where'], 0));
+        }
+
+        // on restaure les clauses WHERE orginales
+        $query['where'] = $backup_where;
+
+        $search_where = array_filter($search_where);
+
+        if(!empty($search_where)) {
+
+            // on assemble les clauses WHERE principales et secondaires du champ et on les ajoute aux clauses originales
+            $query['where'][] = "(" . implode(' OR ', $search_where) . ")";
+        }
+    }
+
+}
+
+/**
+ * Implementation of hook_scl_query()
+ *
+ * @param boolean $out_of_normal_process : a flag indicates to ignore behavior parameter
+ */
+function sirtaqui_content_listing_scl_query(&$query, &$compiler_options, $content_listing, $out_of_normal_process = false) {
+
+    if(empty($content_listing->cache['sorts']['order_by'])) {return;}
+
+    if($out_of_normal_process == false) {
+
+        $order_by_clause = (array)$content_listing->cache['sorts']['order_by']; // (array) : voir remarque ci-après
+
+        $order_by_clause = $order_by_clause[0];
+        unset($content_listing->cache['sorts']['order_by']); // on ne conserve que les JOIN
+
+        $orderby_mode = variable_get('scl_query_orderby_mode', 1);
+
+        switch($orderby_mode) {
+            case 1: // prepend
+                array_unshift($query['order_by'], $order_by_clause);
+                break;
+
+            case 2: // append
+                array_push($query['order_by'], $order_by_clause);
+                break;
+
+            case 3: // replace
+                $query['order_by'] = array($order_by_clause);
+                break;
+        }
+    }
+
+    // Attention, le 'ORDER BY' du cache de certain sites déjà en place, à la base, est une chaîne (erreur de conception),
+    // pas un tableau. Cela a été corrigé depuis. array_merge_recursive() permet de s'affranchir de ce problème.
+    $query = array_merge_recursive($query, $content_listing->cache['sorts']);
+}
+

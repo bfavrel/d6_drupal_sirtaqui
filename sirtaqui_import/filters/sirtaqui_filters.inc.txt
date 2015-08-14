@@ -1,0 +1,379 @@
+<?php
+
+/**
+ * Les valeurs données par SIRTAqui sont :
+ * Date de début année N | date de fin année N | heure d'ouverture 1 | heure fermeture 1 | heure d'ouverture 2 | heure fermeture 2 | jour fermeture |
+ * Date de début année N+1 | date de fin année N+1 | heure d'ouverture 1 (N+1) | heure fermeture 1 (N+1) | heure d'ouverture 2 (N+1) | heure fermeture 2 (N+1)
+ * @param string $value
+ * @param stdClass $content
+ */
+function sirtaqui_filter_ouverture($value, &$content) {
+	
+	$dd = 0;
+	$df = 1;
+	$ho1 = 2;
+	$hf1 = 3;
+	$ho2 = 4;
+	$hf2 = 5;
+	$jf = 6;
+	$ddn = 7;
+	$dfn = 8;
+	$ho1n = 9;
+	$hf1n = 10;
+	$ho2n = 11;
+	$hf2n = 12;
+	
+	$line_size = 13;
+	
+	if (empty($value))
+		return;
+	
+	// Transformation de la chaine de caractère en tableau (termes séparés par "|" )
+	$ouverture = preg_split('/\|/', trim($value));
+	array_walk($ouverture, function(&$val){
+		$val = trim($val);
+	});
+	if ($ouverture[0] == "")
+		return;
+	
+	$content->field_f_ouverture = array();
+	$line_nb = count($ouverture);
+	
+	$tarifn1 = array(array('value' => (date('Y')+1) . ' :'));
+	for ($i = 0; $i < $line_nb; $i += $line_size) {
+		
+		// Le DATE | Du DATE au DATE
+		if ($ouverture[$i + $dd] != '' && $ouverture[$i + $df] != '' && $ouverture[$i + $ho1] == '' && $ouverture[$i + $hf1] == '' && $ouverture[$i + $ho2] == '' && $ouverture[$i + $hf2] == '') {
+			if ($ouverture[$i + $dd] == $ouverture[$i + $df]) {
+				$content->field_f_ouverture[] = array('value' => t('The %begindate', array('%begindate' => $ouverture[$i + $dd]), $content->language));
+			}
+			else {
+				$content->field_f_ouverture[] = array('value' => t('From %begindate to %enddate', array('%begindate' => $ouverture[$i + $dd], '%enddate' => $ouverture[$i + $df]), $content->language));
+			}
+		} // Le DATE, à HEURE || Du DATE au DATE, à HEURE
+		elseif ($ouverture[$i + $dd] != '' && $ouverture[$i + $df] != '' && $ouverture[$i + $ho1] != '' && $ouverture[$i + $hf1] == '' && $ouverture[$i + $ho2] == '' && $ouverture[$i + $hf2] == '') {
+			if ($ouverture[$i + $dd] == $ouverture[$i + $df]) {
+				$content->field_f_ouverture[] = array('value' => t('The %begindate, at %openhour', array('%begindate' => $ouverture[$i + $dd], '%openhour' => $ouverture[$i + $ho1]), $content->language));
+			}
+			else {
+				$content->field_f_ouverture[] = array('value' => t('From %begindate to %enddate, at %openhour', array('%begindate' => $ouverture[$i + $dd], '%enddate' => $ouverture[$i + $df], '%openhour' => $ouverture[$i + $ho1]), $content->language));
+			}
+		} // Le DATE, de HEURE à HEURE || Le DATE, à HEURE || Du DATE au DATE, à HEURE || Du DATE au DATE, de HEURE à HEURE
+		elseif ($ouverture[$i + $dd] != '' && $ouverture[$i + $df] != '' && $ouverture[$i + $ho1] != '' && $ouverture[$i + $hf1] != '' && $ouverture[$i + $ho2] == '' && $ouverture[$i + $hf2] == '') {
+			if ($ouverture[$i + $dd] == $ouverture[$i + $df] && $ouverture[$i + $ho1] != $ouverture[$i + $hf1]) {
+				$content->field_f_ouverture[] = array('value' => t('The %begindate, from %openhour to %closurehour', array('%begindate' => $ouverture[$i + $dd], '%openhour' => $ouverture[$i + $ho1], '%closurehour' => $ouverture[$i + $hf1]), $content->language));
+			}
+			elseif ($ouverture[$i + $dd] == $ouverture[$i + $df] && $ouverture[$i + $ho1] == $ouverture[$i + $hf1]) {
+				$content->field_f_ouverture[] = array('value' => t('The %begindate, at %openhour', array('%begindate' => $ouverture[$i + $dd], '%openhour' => $ouverture[$i + $ho1]), $content->language));
+			}
+			elseif ($ouverture[$i + $dd] =! $ouverture[$i + $df] && $ouverture[$i + $ho1] == $ouverture[$i + $hf1]) {
+				$content->field_f_ouverture[] = array('value' => t('From %begindate to %enddate, at %openhour', array('%begindate' => $ouverture[$i + $dd], '%enddate' => $ouverture[$i + $df], '%openhour' => $ouverture[$i + $ho1]), $content->language));
+			}
+			else {
+				$content->field_f_ouverture[] = array('value' => t('From %begindate to %enddate, from %openhour to %closurehour', array('%begindate' => $ouverture[$i + $dd], '%enddate' => $ouverture[$i + $df], '%openhour' => $ouverture[$i + $ho1], '%closurehour' => $ouverture[$i + $hf1]), $content->language));
+			}
+		} // Le DATE, du HEURE à HEURE et du HEURE à HEURE || Du DATE au DATE, de HEURE à HEURE et de HEURE à HEURE
+		elseif ($ouverture[$i + $dd] != '' && $ouverture[$i + $df] != '' && $ouverture[$i + $ho1] != '' && $ouverture[$i + $hf1] != '' && $ouverture[$i + $ho2] != '' && $ouverture[$i + $hf2] != '') {
+			if ($ouverture[$i + $dd] == $ouverture[$i + $df]) {
+				$content->field_f_ouverture[] = array('value' => t('The %begindate, from %openhour to %closurehour and from %openhour2 to %closurehour2', array('%begindate' => $ouverture[$i + $dd], '%openhour' => $ouverture[$i + $ho1], '%closurehour' => $ouverture[$i + $hf1], '%openhour2' => $ouverture[$i + $ho2], '%closurehour2' => $ouverture[$i + $hf2]), $content->language));
+			}
+			else {
+				$content->field_f_ouverture[] = array('value' => t('From %begindate to %enddate, from %openhour to %closurehour and from %openhour2 to %closurehour2', array('%begindate' => $ouverture[$i + $dd], '%enddate' => $ouverture[$i + $df], '%openhour' => $ouverture[$i + $ho1], '%closurehour' => $ouverture[$i + $hf1], '%openhour2' => $ouverture[$i + $ho2], '%closurehour2' => $ouverture[$i + $hf2]), $content->language));
+			}
+		}
+		if ($ouverture[$i + $jf] != '') {
+			$content->field_f_ouverture[] = array('value' => t('Closed on %closedday', array('%closedday' => $ouverture[$i + $jf])));
+		}
+		if (isset($ouverture[$i + $ddn]) && $ouverture[$i + $ddn] != '') {
+			// Le DATE | Du DATE au DATE
+			if ($ouverture[$i + $ddn] != '' && $ouverture[$i + $dfn] != '' && $ouverture[$i + $ho1n] == '' && $ouverture[$i + $hf1n] == '' && $ouverture[$i + $ho2n] == '' && $ouverture[$i + $hf2n] == '') {
+				if ($ouverture[$i + $ddn] == $ouverture[$i + $dfn]) {
+					$content->field_f_ouverture[] = array('value' => t('The %begindate', array('%begindate' => $ouverture[$i + $ddn]), $content->language));
+				}
+				else {
+					$content->field_f_ouverture[] = array('value' => t('From %begindate to %enddate', array('%begindate' => $ouverture[$i + $ddn], '%enddate' => $ouverture[$i + $dfn]), $content->language));
+				}
+			} // Le DATE, à HEURE || Du DATE au DATE, à HEURE
+			elseif ($ouverture[$i + $ddn] != '' && $ouverture[$i + $dfn] != '' && $ouverture[$i + $ho1n] != '' && $ouverture[$i + $hf1n] == '' && $ouverture[$i + $ho2n] == '' && $ouverture[$i + $hf2n] == '') {
+				if ($ouverture[$i + $ddn] == $ouverture[$i + $dfn]) {
+					$content->field_f_ouverture[] = array('value' => t('The %begindate, at %openhour', array('%begindate' => $ouverture[$i + $ddn], '%openhour' => $ouverture[$i + $ho1n]), $content->language));
+				}
+				else {
+					$content->field_f_ouverture[] = array('value' => t('From %begindate to %enddate, at %openhour', array('%begindate' => $ouverture[$i + $ddn], '%enddate' => $ouverture[$i + $dfn], '%openhour' => $ouverture[$i + $ho1n]), $content->language));
+				}
+			} // Le DATE, de HEURE à HEURE || Le DATE, à HEURE || Du DATE au DATE, à HEURE || Du DATE au DATE, de HEURE à HEURE
+			elseif ($ouverture[$i + $ddn] != '' && $ouverture[$i + $dfn] != '' && $ouverture[$i + $ho1n] != '' && $ouverture[$i + $hf1n] != '' && $ouverture[$i + $ho2n] == '' && $ouverture[$i + $hf2n] == '') {
+				if ($ouverture[$i + $ddn] == $ouverture[$i + $dfn] && $ouverture[$i + $ho1n] != $ouverture[$i + $hf1n]) {
+					$content->field_f_ouverture[] = array('value' => t('The %begindate, from %openhour to %closurehour', array('%begindate' => $ouverture[$i + $ddn], '%openhour' => $ouverture[$i + $ho1n], '%closurehour' => $ouverture[$i + $hf1n]), $content->language));
+				}
+				elseif ($ouverture[$i + $ddn] == $ouverture[$i + $dfn] && $ouverture[$i + $ho1n] == $ouverture[$i + $hf1n]) {
+					$content->field_f_ouverture[] = array('value' => t('The %begindate, at %openhour', array('%begindate' => $ouverture[$i + $ddn], '%openhour' => $ouverture[$i + $ho1n]), $content->language));
+				}
+				elseif ($ouverture[$i + $ddn] =! $ouverture[$i + $dfn] && $ouverture[$i + $ho1n] == $ouverture[$i + $hf1n]) {
+					$content->field_f_ouverture[] = array('value' => t('From %begindate to %enddate, at %openhour', array('%begindate' => $ouverture[$i + $ddn], '%enddate' => $ouverture[$i + $dfn], '%openhour' => $ouverture[$i + $ho1n]), $content->language));
+				}
+				else {
+					$content->field_f_ouverture[] = array('value' => t('From %begindate to %enddate, from %openhour to %closurehour', array('%begindate' => $ouverture[$i + $ddn], '%enddate' => $ouverture[$i + $dfn], '%openhour' => $ouverture[$i + $ho1n], '%closurehour' => $ouverture[$i + $hf1n]), $content->language));
+				}
+			} // Le DATE, du HEURE à HEURE et du HEURE à HEURE || Du DATE au DATE, de HEURE à HEURE et de HEURE à HEURE
+			elseif ($ouverture[$i + $ddn] != '' && $ouverture[$i + $dfn] != '' && $ouverture[$i + $ho1n] != '' && $ouverture[$i + $hf1n] != '' && $ouverture[$i + $ho2n] != '' && $ouverture[$i + $hf2n] != '') {
+				if ($ouverture[$i + $ddn] == $ouverture[$i + $dfn]) {
+					$content->field_f_ouverture[] = array('value' => t('The %begindate, from %openhour to %closurehour and from %openhour2 to %closurehour2', array('%begindate' => $ouverture[$i + $ddn], '%openhour' => $ouverture[$i + $ho1n], '%closurehour' => $ouverture[$i + $hf1n], '%openhour2' => $ouverture[$i + $ho2n], '%closurehour2' => $ouverture[$i + $hf2n]), $content->language));
+				}
+				else {
+					$content->field_f_ouverture[] = array('value' => t('From %begindate to %enddate, from %openhour to %closurehour and from %openhour2 to %closurehour2', array('%begindate' => $ouverture[$i + $ddn], '%enddate' => $ouverture[$i + $dfn], '%openhour' => $ouverture[$i + $ho1n], '%closurehour' => $ouverture[$i + $hf1n], '%openhour2' => $ouverture[$i + $ho2n], '%closurehour2' => $ouverture[$i + $hf2n]), $content->language));
+				}
+			}
+		}
+		
+	}
+	if (count($tarifn1) > 1) {
+		$content->field_f_ouverture = array_merge($content->field_f_ouverture, $tarifn1);
+	}
+}
+
+/**
+ * Les valeurs données par SIRTAqui sont :
+ * Date de début année N | date de fin année N | Date de début année N+1 | date de fin année N+1
+ * @param string $value
+ * @param stdClass $content
+ */
+function sirtaqui_filter_periodeouverture($value, &$content) {
+	
+	$occ_size = 2;
+	
+	if (empty($value))
+		return;
+	
+	// Transformation de la chaine de caractère en tableau (termes séparés par "|" )
+	$values = preg_split('/\|/', trim($value));
+	if ($values[0] == "")
+		return;
+		
+	$content->field_f_periodeouverture = array();
+	$occ_nb = count($values);
+	
+	for ($i = 0; $i < $occ_nb; $i += $occ_size) {
+		
+		if ($values[$i] != '' && $values[$i+1] != '') {
+			$date = DateTime::createFromFormat('d/m/Y', $values[$i]);
+			$date2 = DateTime::createFromFormat('d/m/Y', $values[$i+1]);
+			$content->field_f_periodeouverture[] = array(
+				'value' => $date->format('Y-m-d\TH:i:s'),
+				'value2' => $date2->format('Y-m-d\TH:i:s')
+			);
+		}
+	}
+}
+
+/**
+ * @param string $value
+ * @param stdClass $content
+ */
+function sirtaqui_filter_photos($value, &$content) {
+	sirtaqui_filter_photo($value, $content);
+	$content->field_f_photos = $content->field_f_photo;
+}
+function sirtaqui_filter_photo($value, &$content) {
+	
+	$occ_size = 3;
+	
+	if (empty($value)) {
+		return;
+	}
+	
+	// Transformation de la chaine de caractère en tableau (termes séparés par "|" )
+	$values = preg_split('/\|/', trim($value));
+	if ($values[0] == "") {
+		return;
+	}
+	
+	$content->field_f_photo = array();
+	$occ_nb = count($values);
+	
+	for ($i = 0; $i < $occ_nb; $i += $occ_size) {
+		$url = trim($values[$i + 1]);
+		if ($url != "") {
+			
+			// On test l'existence du fichier dans le dossier
+			if (!file_exists(file_directory_path() . '/sirtaqui_files/' . basename($url))) {
+					
+				// On télécharge le fichier
+				$file_temp = file_get_contents(variable_get("sirtaqui_media_upload_url", "http://cdt24.tourinsoft.com/upload/") . $url);
+		  		$file_temp = file_save_data($file_temp, file_directory_path() . '/sirtaqui_files/' . basename($url), FILE_EXISTS_REPLACE);
+				
+				if (mime_content_type($file_temp) == 'image/x-ms-bmp' || mime_content_type($file_temp) == 'application/x-empty') continue;
+			}
+			
+			// On test l'existence du fichier dans la base
+			$file = _get_file_from_path(file_directory_path() . '/sirtaqui_files/' . basename($url));
+			
+			if ($file) {
+				$content->field_f_photo[] = $file;
+				continue;
+			}
+			else {
+				
+				$file = new stdClass();
+				$file->title = $values[$i];
+				$file->filename = basename($file_temp);
+				$file->filepath = $file_temp;
+				$file->filemime = mime_content_type($file_temp);
+				$file->filesize = filesize($file_temp);
+				$file->data = array('description' => $values[$i+2]);
+				
+				$file->uid = 1;
+				$file->status = FILE_STATUS_PERMANENT;
+				$file->timestamp = time();
+				drupal_write_record('files', $file);
+				
+				$content->field_f_photo[] = array(
+						'fid' => $file->fid,
+						'title' => $file->title,
+						'filename' => $file->filename,
+						'filepath' => $file->filepath,
+						'filesize' => $file->filesize,
+						'filemime' => $file->filemime,
+						'data' => array(
+							'description' => $values[$i+2],
+						),
+						'list' => 1
+				); // always list
+			}
+			
+		}
+	}
+	
+}
+
+/**
+ * 
+ * Les valeurs données par SIRTAqui sont : 
+ * Intitulé tarif | complément tarifs | tarif min année N | tarif max année N | tarif min année N+1 | tarif max année N+1
+ * @param string $value
+ * @param stdClass $content
+ */
+function sirtaqui_filter_tarif($value, &$content) {
+	
+	$line_size = 6;
+	
+	if (empty($value))
+		return;
+	
+	// Transformation de la chaine de caractère en tableau (termes séparés par "|" )
+	$values = preg_split('/\|/', trim($value));
+	if ($values[0] == "")
+		return;
+		
+	// Préparation pour la traduction
+	$from = t('from', array(), $content->language);
+	$to = t('to', array(), $content->language);
+	
+	$content->field_f_tarif = array();
+	$line_nb = count($values);
+	$tarif_min = floatval(preg_replace('/,/', '.', $values[2]));
+	$tarif_max = floatval(preg_replace('/,/', '.', $values[3]));
+	
+	for ($i = 0; $i < $line_nb; $i += $line_size) {
+		
+		$line = "";
+		
+		if ($tarif_min > floatval(preg_replace('/,/', '.', $values[$i+2])))
+			$tarif_min = floatval(preg_replace('/,/', '.', $values[$i+2]));
+		
+		if ($values[$i+3] != '') {
+			
+			if ($tarif_max < floatval(preg_replace('/,/', '.', $values[$i+3])))
+				$tarif_max = floatval(preg_replace('/,/', '.', $values[$i+3]));
+			
+			if ($values[$i+2] == $values[$i+3]) {
+				
+				if ($values[$i+1] != '') {
+					// Intitulé (complément tarif) : X €
+					$line = $values[$i] . ' (' . $values[$i+1] . ') : ' . $values[$i+2] . ' € ';
+				}
+				else {
+					// Intitulé : X €
+					$line = $values[$i] . ' : ' . $values[$i+2] . ' € ';
+				}
+			}
+			else {
+				if ($values[$i+1] != '') {
+					// Intitulé (complément tarif) : de X € à Y €
+					$line = $values[$i] . ' (' . $values[$i+1] . ') : ' . $from . ' ' . $values[$i+2] . ' € ' . $to . ' ' . $values[$i+3] . ' €';
+				}
+				else {
+					// Intitulé : de X € à Y €
+					$line = $values[$i] . ' : ' . $from . ' ' . $values[$i+2] . ' € ' . $to . ' ' . $values[$i+3] . ' €';
+				}
+			}
+		}
+		else {
+			if ($values[$i+1] != '') {
+				// Intitulé (complément tarif) : X €
+				$line = $values[$i] . ' (' . $values[$i+1] . ') : ' . $values[$i+2] . ' €';
+			}
+			else {
+				// Intitulé : X €
+				$line = $values[$i] . ' : ' . $values[$i+2] . ' €';
+			}
+		}
+		
+		if ($values[$i+4] != '') {
+			// Intitulé (complément tarif) : de X € à Y € (ANNEE N)
+			$line .= ' (' . date('Y') . ')';
+			$content->field_f_tarif[] = array('value' => $line);
+			if ($values[$i+5] != '') {
+				if ($values[$i+1] != '') {
+					// Intitulé (complément tarif) : de X € à Y € (ANNEE N+1)
+					$line = $values[$i] . ' (' . $values[$i+1] . ') : ' . $from . ' ' . $values[$i+4] . ' € ' . $to . ' ' . $values[$i+5] . ' € (' . (date('Y')+1) . ')';
+				}
+				else {
+					// Intitulé : de X € à Y € (ANNEE N+1)
+					$line = $values[$i] . ' : ' . $from . ' ' . $values[$i+4] . ' € ' . $to . ' ' . $values[$i+5] . ' € (' . (date('Y')+1) . ')';
+				}
+			}
+			else {
+				if ($values[$i+1] != '') {
+					// Intitulé (complément tarif) : X €
+					$line = $values[$i] . ' (' . $values[$i+1] . ') : ' . $values[$i+4] . ' € (' . (date('Y')+1) . ')';
+				}
+				else {
+					// Intitulé : X €
+					$line = $values[$i] . ' : ' . $values[$i+4] . ' € (' . (date('Y')+1) . ')';
+				}
+			}
+		}
+		$content->field_f_tarif[] = array('value' => $line);
+	}
+	
+	$content->field_tarif_min[0] = array('value' => $tarif_min);
+	$content->field_tarif_max[0] = array('value' => $tarif_max);
+}
+
+/**
+ * Change la casse des communes => Capitalize
+ * @param string $value
+ * @param stdClass $content
+ */
+function sirtaqui_filter_commune($value, &$content) {
+
+	// Si plusieurs valeurs alors elles sont séparées par un $
+	// $values devient obligatoirement un tableau
+	$values = explode('|', trim($value));
+
+	// Supprime les entrèes vides du tableau
+	if (!empty($values))
+		$values = array_filter($values, "_empty_table_value");
+
+	if (empty($values))
+		return;
+
+	foreach ($values as $values_key => $val) {
+		$val = strtolower($val);
+		$val = str_replace('- ','-',ucwords(str_replace('-','- ', $val)));
+		$values[$values_key] = _field_end_filter($val);
+	}
+	// On ajoute les valeurs au contenu
+	$content->field_f_commune = $values;
+}

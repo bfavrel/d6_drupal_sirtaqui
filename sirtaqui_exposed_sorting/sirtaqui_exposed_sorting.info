@@ -1,0 +1,7 @@
+core          = "6.x"
+description   = "Provides a sorting interface to users in order to sort each listing"
+name          = "Sirtaqui exposed sorting"
+package       = "Saison d'Or"
+
+dependencies[] = sirtaqui_content_listing
+dependencies[] = so_forms

@@ -1,0 +1,43 @@
+
+#sirtaqui_displays_selector_element {
+    float: left;
+    display: none;
+    padding: 5px;
+    position: absolute;
+    left: -5px;
+    top: -5px;
+    z-index: 1000;
+    border: 1px solid #027AC6;
+    background-color: #edf5fa;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    cursor: default;
+}
+
+#sirtaqui_displays_selector_element .form-item {
+    margin: 0;
+}
+
+span.sirtaqui_displays_picto_link {
+    position: relative;
+    z-index: 0;
+    cursor: pointer;
+}
+
+img.sirtaqui_displays_picto {
+    vertical-align: -3px;
+}
+
+span.sirtaqui_displays_picto_link.processing {
+    background-image: url('/misc/throbber.gif');
+    background-position: 1px -18px;
+    background-repeat: no-repeat;
+    cursor: default;
+}
+
+span.sirtaqui_displays_picto_link.processing img {
+    visibility: hidden;    
+}
+
+table.sticky-header {
+    z-index: 10000;
+}

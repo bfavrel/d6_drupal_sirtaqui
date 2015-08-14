@@ -1,0 +1,7 @@
+; $Id$
+core          = "6.x"
+dependencies[] = content
+dependencies[] = sirtaqui
+description   = "Import content to already created SIRTAqui content"
+name          = "Sirtaqui import"
+package       = Saison d'Or

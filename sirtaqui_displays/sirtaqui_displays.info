@@ -1,0 +1,8 @@
+; $Id$
+core		= "6.x"
+version		= "6.x-1.0"
+dependencies[] = sirtaqui
+dependencies[] = sirtaqui_content_listing
+description   = "Create different node displays for Sirtaqui"
+name          = "Sirtaqui Displays"
+package       = Saison d'Or

@@ -1,0 +1,10 @@
+; $Id$
+core		= "6.x"
+version		= "6.x-1.0"
+dependencies[] = i18n
+dependencies[] = content
+dependencies[] = content_copy
+dependencies[] = views
+description   = "Give all managing options for Sirtaqui"
+name          = "Sirtaqui"
+package       = Saison d'Or

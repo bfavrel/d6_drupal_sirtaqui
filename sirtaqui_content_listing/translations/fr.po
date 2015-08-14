@@ -1,0 +1,568 @@
+# $Id$
+#
+# French translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  sirtaqui_content_listing.admin.inc: n/a
+#  sirtaqui_content_listing.install: n/a
+#  sirtaqui_content_listing.module: n/a
+#  sirtaqui_content_listing.views.inc: n/a
+#  sirtaqui_content_listing.info: n/a
+#  theme/sirtaqui_listing.tpl.php: n/a
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2013-07-12 15:14+0200\n"
+"PO-Revision-Date: 2013-07-12 15:23+0100\n"
+"Last-Translator: David PIVERON\n"
+"Language-Team: French <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: sirtaqui_content_listing.admin.inc:24
+msgid "Results by page"
+msgstr "Résultats par page"
+
+#: sirtaqui_content_listing.admin.inc:32
+msgid "Keep user search inputs stored permanently"
+msgstr "Conserver les données de recherche de l'utilisateur de manière permanente"
+
+#: sirtaqui_content_listing.admin.inc:33
+msgid "If unchecked, user search will be cleared everytime a user leave a listing."
+msgstr "Si non-coché, les données de recherches de l'utilisateur sont réinitialisées à chaque fois qu'il quitte un listing."
+
+#: sirtaqui_content_listing.admin.inc:40
+msgid "Use compatibility with old version"
+msgstr "Utiliser la compatibilité avec l'ancienne version"
+
+#: sirtaqui_content_listing.admin.inc:41
+msgid ""
+"For websites which already have content listings set when they go updated with the new version of module (featuring Forms!)<br />\n"
+"            In the new version, forms and listing are created together. Whith compatibility mode set, some checks are performed when admin displays the config form, and if form doesn't exist in database it is created.<br />\n"
+"            Disabling this options if not needed can save a couple of database queries."
+msgstr ""
+"Pour les sites dont les listings ont déjà été paramétrés et qui sont mis à jour avec la nouvelle version du module (incluant Forms!)<br />\n"
+"Dans la nouvelle version, les formulaires et les listings sont créés simultanément. Avec le mode de compatibilité activé, une verification de l'existence du formulaire en base de données est effectuée, et, le cas échéant, le formulaire est créé.<br />\n"
+"Désactiver cette option si elle n'est pas nécessaire conduit à économiser quelques requêtes SQL."
+
+#: sirtaqui_content_listing.admin.inc:50
+msgid ""
+"This hook is called at the very end of the process, just before SQL compilation.<br />\n"
+"            Order start at '1'. If set to '0', hook will be discarded."
+msgstr "Ce hook est appelé à la fin du process, juste avant la compilation SQL.<br />Ordre commence à '1'. S'il est paramétré à '0', le hook sera ignoré."
+
+#: sirtaqui_content_listing.admin.inc:73
+msgid "No hook set"
+msgstr "Aucun hook"
+
+#: sirtaqui_content_listing.admin.inc:79
+msgid "ORDER BY"
+msgstr "ORDER BY"
+
+#: sirtaqui_content_listing.admin.inc:80
+msgid "If hook sirtaqui_content_listing_scl_query() has been activated, it's possible to choose how to integer its clause against existing ORDER BY set by other modules."
+msgstr "Si le hook sirtaqui_content_listing_scl_query() a été activé, il est possible de choisir comment sa clause va s'intégrer au sein des ORDER BY déjà définis par les autres modules."
+
+#: sirtaqui_content_listing.admin.inc:85
+msgid "hook sirtaqui_content_listing_scl_query() behavior"
+msgstr "Comportement du hook sirtaqui_content_listing_scl_query()"
+
+#: sirtaqui_content_listing.admin.inc:86
+msgid "At this point, filters have been processed"
+msgstr "A ce niveau, les filtres ont été processed"
+
+#: sirtaqui_content_listing.admin.inc:89
+msgid "Prepend"
+msgstr "Prepend"
+
+#: sirtaqui_content_listing.admin.inc:90
+msgid "Append"
+msgstr "Append"
+
+#: sirtaqui_content_listing.admin.inc:91
+msgid "Replace"
+msgstr "Replace"
+
+#: sirtaqui_content_listing.admin.inc:98
+msgid "Debug mode"
+msgstr "Debug mode"
+
+#: sirtaqui_content_listing.admin.inc:99
+msgid "Display SCL queries in Drupal messages zone (only for UID 1 and in front end)"
+msgstr "Affiche les requêtes SCL dans la zone de message de Drupal (seulement pour UID 1 en front)"
+
+#: sirtaqui_content_listing.admin.inc:151
+msgid "Language neutral"
+msgstr "Indépendant de la langue"
+
+#: sirtaqui_content_listing.admin.inc:159
+msgid "edit"
+msgstr "modifier"
+
+#: sirtaqui_content_listing.admin.inc:160
+msgid "delete"
+msgstr "supprimer"
+
+#: sirtaqui_content_listing.admin.inc:194
+msgid "No listing available."
+msgstr "Aucun listing disponible."
+
+#: sirtaqui_content_listing.admin.inc:197
+#: sirtaqui_content_listing.install:12
+msgid "Listing"
+msgstr "Listing"
+
+#: sirtaqui_content_listing.admin.inc:197
+msgid "Pages"
+msgstr "Pages"
+
+#: sirtaqui_content_listing.admin.inc:197;233;500
+msgid "Description"
+msgstr "Description"
+
+#: sirtaqui_content_listing.admin.inc:198
+msgid "Actions"
+msgstr "Actions"
+
+#: sirtaqui_content_listing.admin.inc:228;494
+msgid "Listing Name"
+msgstr "Nom du listing"
+
+#: sirtaqui_content_listing.admin.inc:242;510
+msgid "Content type(s)"
+msgstr "Type(s) de contenu"
+
+#: sirtaqui_content_listing.admin.inc:254;527
+msgid "Delete last content type"
+msgstr "Supprimer le dernier type de contenu"
+
+#: sirtaqui_content_listing.admin.inc:264;432;537
+msgid "Add content type"
+msgstr "Ajouter un type de contenu"
+
+#: sirtaqui_content_listing.admin.inc:274
+msgid "Create listing"
+msgstr "Créer un listing"
+
+#: sirtaqui_content_listing.admin.inc:307;603
+msgid "Error while saving sirtaqui content listing %content"
+msgstr "Erreur lors de la création du listing %content"
+
+#: sirtaqui_content_listing.admin.inc:547
+msgid "Save listing"
+msgstr "Sauvegarder le listing"
+
+#: sirtaqui_content_listing.admin.inc:645
+#: sirtaqui_content_listing.module:199
+msgid "Sorting"
+msgstr "Tri"
+
+#: sirtaqui_content_listing.admin.inc:681;1057
+msgid "Available fields"
+msgstr "Champs disponibles"
+
+#: sirtaqui_content_listing.admin.inc:685;1061
+msgid "Fields helper"
+msgstr "Fields helper"
+
+#: sirtaqui_content_listing.admin.inc:688;739
+msgid "* shared fields"
+msgstr "* champs communs"
+
+#: sirtaqui_content_listing.admin.inc:703
+msgid "'ORDER BY' clause fragment"
+msgstr "Fragment de clause 'ORDER BY'"
+
+#: sirtaqui_content_listing.admin.inc:706
+msgid ""
+"This fragment will be inserted in query, as this :\n"
+"                <br />ORDER BY <strong>[THE FRAGMENT]</strong>"
+msgstr "Le fragment sera inséré comme tel :<br />ORDER BY <strong>[THE FRAGMENT]</strong>"
+
+#: sirtaqui_content_listing.admin.inc:712;1091
+msgid "Preview"
+msgstr "Aperçu"
+
+#: sirtaqui_content_listing.admin.inc:722;1101
+msgid "all"
+msgstr "tout"
+
+#: sirtaqui_content_listing.admin.inc:727;1106
+msgid "Language filter"
+msgstr "Filtrer la langue"
+
+#: sirtaqui_content_listing.admin.inc:734;1115
+msgid "Fields to display in preview, in addition to 'nid', 'title' and 'type'"
+msgstr "Champs à afficher, en plus de 'nid', 'title' et 'type'"
+
+#: sirtaqui_content_listing.admin.inc:744;1124
+msgid "Additional extractions"
+msgstr "Extractions supplémentaires"
+
+#: sirtaqui_content_listing.admin.inc:746;1126
+msgid "More fields to select, with or without aliases, separated with commas."
+msgstr "Champs à sélectionner en plus, avec ou sans alias, séparés par une virgule"
+
+#: sirtaqui_content_listing.admin.inc:752;1132
+msgid "Number of results"
+msgstr "Nombre de résultats"
+
+#: sirtaqui_content_listing.admin.inc:759;1139
+msgid "Use user filters"
+msgstr "Utiliser les filtres"
+
+#: sirtaqui_content_listing.admin.inc:766
+msgid "Use advanced filters"
+msgstr "Utiliser les filtres avancés"
+
+#: sirtaqui_content_listing.admin.inc:773
+msgid "Use calls to hook_scl_query()"
+msgstr "Utiliser les appels aux hook_scl_query()"
+
+#: sirtaqui_content_listing.admin.inc:780
+msgid "Try the sort"
+msgstr "Tester le tri"
+
+#: sirtaqui_content_listing.admin.inc:785
+msgid "Publish the sort"
+msgstr "Publier le tri"
+
+#: sirtaqui_content_listing.admin.inc:923
+msgid "Sorting has been saved"
+msgstr "Le tri a été sauvegardé"
+
+#: sirtaqui_content_listing.admin.inc:937;1347
+msgid "Generated query"
+msgstr "Requête générée"
+
+#: sirtaqui_content_listing.admin.inc:942;1352
+msgid "Oops ! The query has a problem"
+msgstr "Oups ! Il y a une couille dans le potage"
+
+#: sirtaqui_content_listing.admin.inc:949;1359
+msgid "Generated query fragment"
+msgstr "Fragment de requête généré"
+
+#: sirtaqui_content_listing.admin.inc:953
+msgid "Generated query JOIN"
+msgstr "Clauses JOIN générées"
+
+#: sirtaqui_content_listing.admin.inc:1038
+msgid "Filter for"
+msgstr "Filtre pour"
+
+#: sirtaqui_content_listing.admin.inc:1078
+msgid "'WHERE' clause fragment"
+msgstr "Fragment de clause 'WHERE'"
+
+#: sirtaqui_content_listing.admin.inc:1080
+msgid ""
+"Think to include fields '_f' as well !\n"
+"                <br />This fragment will be inserted in query, as this :\n"
+"                <br />WHERE ( (n.type='<strong>%content_type</strong>' AND (<strong>[THE FRAGMENT]</strong>)) OR (n.type='<em>another_content_type</em>' AND (<em>[another fragment]</em>)) OR ... ) AND <em>other query stuff</em>..."
+msgstr "Penser à inclure également les champs '_f' !<br />Ce fragment sera inséré dans la requête, comme ceci:<br />WHERE ( (n.type='<strong>%content_type</strong>' AND (<strong>[THE FRAGMENT]</strong>)) OR (n.type='<em>another_content_type</em>' AND (<em>[another fragment]</em>)) OR ... ) AND <em>autres trucs de la requête</em>..."
+
+#: sirtaqui_content_listing.admin.inc:1146
+msgid "Use sorting"
+msgstr "Utiliser le tri"
+
+#: sirtaqui_content_listing.admin.inc:1153
+msgid "Try the filters"
+msgstr "Tester les filtres"
+
+#: sirtaqui_content_listing.admin.inc:1158
+msgid "Publish the filters"
+msgstr "Publier les filtres"
+
+#: sirtaqui_content_listing.admin.inc:1294
+msgid "Filters have been saved"
+msgstr "Les filtres ont été sauvegardés"
+
+#: sirtaqui_content_listing.admin.inc:1315
+msgid "on @count"
+msgstr "sur @count"
+
+#: sirtaqui_content_listing.admin.inc:1332
+#: sirtaqui_content_listing.install:16
+msgid "Title"
+msgstr "Titre"
+
+#: sirtaqui_content_listing.admin.inc:1332
+msgid "Type"
+msgstr "Type"
+
+#: sirtaqui_content_listing.admin.inc:1332
+msgid "Status"
+msgstr "Statut"
+
+#: sirtaqui_content_listing.admin.inc:1377
+msgid "- No result -"
+msgstr "- Aucun résultat -"
+
+#: sirtaqui_content_listing.admin.inc:1380
+msgid "Listing preview"
+msgstr "Previsualisation du listing"
+
+#: sirtaqui_content_listing.admin.inc:1502;1826
+msgid "-- Select a value --"
+msgstr "-- Sélectionner une valeur --"
+
+#: sirtaqui_content_listing.admin.inc:1515
+msgid "Filters for"
+msgstr "Filtres pour"
+
+#: sirtaqui_content_listing.admin.inc:1595
+msgid "Add filter"
+msgstr "Ajouter un filtre"
+
+#: sirtaqui_content_listing.admin.inc:1602
+msgid "Nodes filter"
+msgstr "Filtre de nodes"
+
+#: sirtaqui_content_listing.admin.inc:1603
+msgid "If one node or more are selected, only these nodes will be displayed in listing.<br />If nothing is selected all nodes will be displayed."
+msgstr "Si un ou plusieurs nodes sont sélectonnés, seuls ces nodes seront affichés dans le listing.<br />Si aucun n'est sélectionné, tous les nodes seront affichés."
+
+#: sirtaqui_content_listing.admin.inc:1653
+msgid "published"
+msgstr "publié"
+
+#: sirtaqui_content_listing.admin.inc:1653
+msgid "not published"
+msgstr "non publié"
+
+#: sirtaqui_content_listing.admin.inc:1663
+msgid "Save filters"
+msgstr "Sauvegarder les filtres"
+
+#: sirtaqui_content_listing.admin.inc:1712
+msgid "Error while saving sirtaqui content listing "
+msgstr "Erreur lors de la sauvegarde du listing"
+
+#: sirtaqui_content_listing.admin.inc:1900
+msgid "Bad argument given"
+msgstr "Argument fourni erroné"
+
+#: sirtaqui_content_listing.admin.inc:1908
+msgid "Are you sure you want to delete the content listing %title?"
+msgstr "Êtes-vous sûr(e) de vouloir supprimer le listing %title ?"
+
+#: sirtaqui_content_listing.admin.inc:1910
+msgid "This action cannot be undone."
+msgstr "Cette action est irréversible."
+
+#: sirtaqui_content_listing.admin.inc:1911
+msgid "Delete"
+msgstr "Supprimer"
+
+#: sirtaqui_content_listing.admin.inc:1912
+msgid "Cancel"
+msgstr "Annuler"
+
+#: sirtaqui_content_listing.admin.inc:1927;1929
+msgid "Deleted sirtaqui content listing %label."
+msgstr "Listing %label supprimé"
+
+#: sirtaqui_content_listing.admin.inc:1929
+msgid "sirtaqui_content_listing"
+msgstr "sirtaqui_content_listing"
+
+#: sirtaqui_content_listing.admin.inc:1314
+msgid "1 node selected"
+msgid_plural "@count nodes selected"
+msgstr[0] "1 node sélectionné"
+msgstr[1] "@count nodes sélectionnés"
+
+#: sirtaqui_content_listing.views.inc:321
+msgid "Views was generated for %content"
+msgstr "La Vue a été générée pour le contenu %content"
+
+#: sirtaqui_content_listing.module:266
+msgid "Edit '@listing' listing"
+msgstr "Edition du listing '@listing'"
+
+#: sirtaqui_content_listing.module:341
+msgid "Hide disabled entries"
+msgstr "Masquer les entrée désactivées"
+
+#: sirtaqui_content_listing.module:346
+msgid "Show disabled entries"
+msgstr "Afficher les entrée désactivées"
+
+#: sirtaqui_content_listing.module:973
+msgid "Common"
+msgstr "Commun"
+
+#: sirtaqui_content_listing.module:1167
+msgid "Search results in this fields also"
+msgstr "Rechercher également les résultats dans ces champs"
+
+#: sirtaqui_content_listing.module:1178
+msgid "Results matching"
+msgstr "Correspondance des résultats"
+
+#: sirtaqui_content_listing.module:1181
+msgid "Results contain the term"
+msgstr "Les résultats contiennent le terme entré"
+
+#: sirtaqui_content_listing.module:1182
+msgid "Results start by the term"
+msgstr "Les résultats commencent par le terme entré"
+
+#: sirtaqui_content_listing.module:1183
+msgid "Results match the term"
+msgstr "Les résultats doivent correspondre exactement au terme entré"
+
+#: sirtaqui_content_listing.module:1191
+msgid "Use autocompletion"
+msgstr "Utiliser l'autocompletion"
+
+#: sirtaqui_content_listing.module:1194
+msgid "Minimum number of letters to type before triggering.<br />'0' = autocompletion disabled"
+msgstr "Nombre minimum de lettres à entrer avant déclenchement.<br />'0' = autocomplétion désactivée"
+
+#: sirtaqui_content_listing.module:1210
+msgid "Results have to be..."
+msgstr "Les résultats doivent être..."
+
+#: sirtaqui_content_listing.module:1212
+msgid "equal at entered value"
+msgstr "égaux à la valeur entrée"
+
+#: sirtaqui_content_listing.module:1213
+msgid "different from entered value"
+msgstr "différents de la valeur entrée"
+
+#: sirtaqui_content_listing.module:1214
+msgid "lower than entered value"
+msgstr "inférieurs à la valeur entrée"
+
+#: sirtaqui_content_listing.module:1215
+msgid "lower or equal than entered value"
+msgstr "inférieurs ou égaux la valeur entrée"
+
+#: sirtaqui_content_listing.module:1216
+msgid "greater than entered value"
+msgstr "supérieurs à la valeur entrée"
+
+#: sirtaqui_content_listing.module:1217
+msgid "greater or equal than entered value"
+msgstr "supérieurs ou égaux à la valeur entrée"
+
+#: sirtaqui_content_listing.module:1231
+msgid "Result mode"
+msgstr "Correspondance des résultats"
+
+#: sirtaqui_content_listing.module:1234
+msgid "Results have to match at least one selected option"
+msgstr "Les resultats doivent satisfaire à au moins une des options sélectionnées"
+
+#: sirtaqui_content_listing.module:1235
+msgid "Results have to match all selected options"
+msgstr "Les résultats doivent satisfaire à toutes les options sélectionnées"
+
+#: sirtaqui_content_listing.module:1246
+msgid "Show the results which"
+msgstr "Les résultats doivent"
+
+#: sirtaqui_content_listing.module:1249
+msgid "have their both dates surrounding the searched period"
+msgstr "avoir leurs deux dates encadrant la période recherchée"
+
+#: sirtaqui_content_listing.module:1250
+msgid "have at least their start date in the searched period"
+msgstr "avoir au moins la date de début dans la période recherchée"
+
+#: sirtaqui_content_listing.module:1251
+msgid "have at least their end date in the searched period"
+msgstr "avoir au moins la date de fin dans la période recherchée"
+
+#: sirtaqui_content_listing.module:1252
+msgid "have their both dates surrounded by the searched period"
+msgstr "avoir leurs deux dates encadrées par la période recherchée"
+
+#: sirtaqui_content_listing.module:1255
+msgid "last option results are necessarily included in those of its two preceding options.<br />Hence, it is only applicable as a constraint if they aren't checked."
+msgstr "les résultats de la dernière option feront nécessairement partie de ceux des deux précédentes options.<br />Cette option n'aura donc un quelconque effet que si elles sont décochées."
+
+#: sirtaqui_content_listing.module:39
+msgid "administer sirtaqui content listing"
+msgstr "administrer sirtaqui_content_listing"
+
+#: sirtaqui_content_listing.module:39
+msgid "administer SCL advanced features"
+msgstr "administrer les fonctions avancées de SCL"
+
+#: sirtaqui_content_listing.module:111
+msgid "SIRTAqui contents listing"
+msgstr "SIRTAqui contents listing"
+
+#: sirtaqui_content_listing.module:120
+msgid "Content listings"
+msgstr "Listings"
+
+#: sirtaqui_content_listing.module:126
+msgid "SIRTAqui create contents listing"
+msgstr "SIRTAqui créer un listing"
+
+#: sirtaqui_content_listing.module:150
+msgid "SIRTAqui edit contents listing"
+msgstr "SIRTAqui éditer un listing"
+
+#: sirtaqui_content_listing.module:161
+msgid "Edit contents listing"
+msgstr "Editer un listing"
+
+#: sirtaqui_content_listing.module:168
+msgid "Listings"
+msgstr ""
+
+#: sirtaqui_content_listing.module:178
+msgid "Filters"
+msgstr "Filtres"
+
+#: sirtaqui_content_listing.module:189
+msgid "Advanced filters"
+msgstr "Filtres avancés"
+
+#: sirtaqui_content_listing.module:231
+msgid "SIRTAqui delete content listing"
+msgstr "SIRTAqui supprimer un listing"
+
+#: sirtaqui_content_listing.module:240
+msgid "SIRTAqui delete all listing links"
+msgstr "Supprimer tous les liens SIRTAqui"
+
+#: sirtaqui_content_listing.module:247
+msgid "Search form"
+msgstr "Formulaire de recherche"
+
+#: sirtaqui_content_listing.install:18
+msgid "Body"
+msgstr "Corps"
+
+#: sirtaqui_content_listing.info:0
+msgid "Sirtaqui content listing"
+msgstr "Sirtaqui content listing"
+
+#: sirtaqui_content_listing.info:0
+msgid "Create SIRTAqui content listing with SIRTAqui feeds"
+msgstr ""
+
+#: sirtaqui_content_listing.info:0
+msgid "Saison d'Or"
+msgstr "Saison d'Or"
+
+#: theme/sirtaqui_listing.tpl.php:19
+msgid "No result"
+msgstr "Aucun résultat"
+
+#: theme/sirtaqui_listing.tpl.php:17
+msgid "<span class=\"nb-items\">1</span> result"
+msgid_plural "<span class=\"nb-items\">@count</span> results"
+msgstr[0] "<span class=\"nb-items\">1</span> resultat"
+msgstr[1] "<span class=\"nb-items\">@count</span> resultats"
+

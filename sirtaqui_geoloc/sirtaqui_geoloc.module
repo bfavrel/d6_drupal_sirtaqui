@@ -1,0 +1,158 @@
+<?php
+
+/*
+ * Implementation of hook_sirtaqui_settings()
+ */
+function sirtaqui_geoloc_sirtaqui_settings() {
+    return array(
+        'sirtaqui_geoloc' => array(
+            'title' => 'sirtaqui_geoloc settings',
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array('sirtaqui_geoloc_settings'),
+        ),
+    );
+}
+
+function sirtaqui_geoloc_settings($form_state) {
+    $form = array();
+
+    $fields = content_fields();
+
+    $options = array_combine(array_keys($fields), array_keys($fields));
+
+    foreach($options as $option) {
+        if(strpos($option, 'field_f_') === 0) {
+            unset($options[$option]);
+        }
+    }
+
+    ksort($options);
+
+    $form['sirtaqui_geoloc_longitude'] = array(
+        '#type' => 'select',
+        '#title' => t("Longitude field"),
+        '#options' => $options,
+        '#default_value' => variable_get('sirtaqui_geoloc_longitude', 'field_longitude'),
+    );
+
+    $form['sirtaqui_geoloc_latitude'] = array(
+        '#type' => 'select',
+        '#title' => t("Latitude field"),
+        '#options' => $options,
+        '#default_value' => variable_get('sirtaqui_geoloc_latitude', 'field_latitude'),
+    );
+
+    return system_settings_form($form);
+}
+
+function sirtaqui_geoloc_so_forms($module, $id) {
+
+    if($module != 'sirtaqui_exposed_sorting') {return;}
+
+    // on fourni le champ seulement si tous les types de contenus concernés possèdent des coordonnées sinon, le tri ne sera pas possible
+    $listing = sirtaqui_load_sirtaqui_content_listing($id);
+    $content_types = unserialize($listing->sirtaqui_content);
+
+    foreach($content_types as $content_type) {
+        if(content_fields(variable_get('sirtaqui_geoloc_longitude', 'field_longitude'), $content_type) == null) {return;}
+        if(content_fields(variable_get('sirtaqui_geoloc_latitude', 'field_latitude'), $content_type) == null) {return;}
+    }
+    
+    $fields = array();
+
+    $fields['fields_definitions'] = array(
+        'exposed_field' => array(
+            'label' => 'Distance sorting field',
+            'type' => 'sorting',
+            'callbacks' => array(
+                'values' => 'sirtaqui_geoloc_field_values',
+                'render' => 'sirtaqui_geoloc_field_render',
+            ),
+        ),
+    );
+
+    return $fields;
+}
+
+function sirtaqui_geoloc_field_values($field_infos, $langcode, $configuration) {
+    $values = array();
+
+    $values[] = array(
+        'value' => 'no_vector ASC, squared_vector ASC',
+        'alias' => 'Distance sorting'
+    );
+
+    return $values;
+}
+
+function sirtaqui_geoloc_field_render($field_infos, $langcode, $configuration, $element) {
+
+    $user_position = sirtaqui_geoloc_get_user_position();
+    if($user_position == false) {return;}
+
+    if(!empty($element['#default_value'])) {
+        $class = ' active';
+    }
+
+    $element['#prefix'] = "<div class='geoloc_sorting_item" . $class . "'>";
+    $element['#suffix'] = "</div>";
+
+    return $element;
+}
+
+function sirtaqui_geoloc_get_user_position() {
+    $user_longitude = $_COOKIE['sirtaqui_geoloc_longitude'];
+    $user_latitude = $_COOKIE['sirtaqui_geoloc_latitude'];
+
+    if(empty($user_longitude) || empty($user_latitude)) {return false;}
+
+    return array(
+        'longitude' => $user_longitude,
+        'latitude' => $user_latitude,
+    );
+}
+
+/*
+ * Implementation of hook_sirtaqui_exposed_sorting()
+ */
+function sirtaqui_geoloc_sirtaqui_exposed_sorting(&$query, $user_inputs) {
+
+    $user_position = sirtaqui_geoloc_get_user_position();
+    if($user_position == false) {return;}
+
+    $longitude_fragment = sirtaqui_content_listing_prepare_query_fragment_data(variable_get('sirtaqui_geoloc_longitude', 'field_longitude') . '@sirtaqui');
+    $query['join'] = array_merge($query['join'], $longitude_fragment->joins);
+
+    $latitude_fragment = sirtaqui_content_listing_prepare_query_fragment_data(variable_get('sirtaqui_geoloc_latitude', 'field_latitude') . '@sirtaqui');
+    $query['join'] = array_merge($query['join'], (array)$latitude_fragment->joins);
+
+    $query['fields'] = array(
+        "@longitudeB:=IF(" . $longitude_fragment->fields[0] . "!=''," . $longitude_fragment->fields[0] . "," . $longitude_fragment->fields[1] . ") AS longitude",
+        "@latitudeB:=IF(" . $latitude_fragment->fields[0] . "!=''," . $latitude_fragment->fields[0] . "," . $latitude_fragment->fields[1] . ") AS latitude",
+        "@x:=(@longitudeB-" . $user_position['longitude'] . ") AS longitude_vector",
+        "@y:=(@latitudeB-" . $user_position['latitude'] . ") AS latitude_vector",
+        "@squared_vector:=ABS(@x*@x+@y*@y) AS squared_vector",
+        "@no_vector:=(@squared_vector IS NULL) as no_vector",
+    );
+
+    $query['order_by'][] = $user_inputs[0]['values'][0];
+}
+
+function sirtaqui_geoloc_preprocess_node(&$vars) {
+
+    $user_position = sirtaqui_geoloc_get_user_position();
+
+    if($vars['node']->type == 'listing' || ($user_position == false && $vars['page'] == true)) {// TODO ? : && $vars['is_front'] == false
+        drupal_add_js(drupal_get_path('module', 'sirtaqui_geoloc') . '/scripts/sirtaqui_geoloc.js', 'module', 'header');
+    }
+
+    if(!isset($vars['no_vector']) || $vars['no_vector'] == true) {return;}
+
+    $distance = sqrt($vars['squared_vector']) * 111.19492;
+
+    if($distance < 1) {
+        $vars['distance'] = (int)(round($distance * 100, 0) * 10) . " m";
+    } else {
+        $vars['distance'] = str_replace(',0', '', number_format(round($distance, 1), 1, ',', '')) . " Km";
+    }
+}

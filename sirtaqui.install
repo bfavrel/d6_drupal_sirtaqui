@@ -1,0 +1,696 @@
+<?php
+// $Id$
+
+
+/**
+ * Implementation of hook_install().
+ */
+function sirtaqui_install() {
+	
+ 	drupal_install_schema('sirtaqui');
+  
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function sirtaqui_uninstall() {
+
+  // Drop tables.
+  drupal_uninstall_schema('sirtaqui');
+}
+
+/**
+ * Implementation of hook_schema().
+ *
+ * Generate the current version of the database schema from
+ * the sequence of schema update functions. Uses a similar
+ * method to install.inc's drupal_get_schema_versions() to
+ * establish the update sequence.
+ *
+ * To change the schema, add a new sirtaqui_schema_N()
+ * function to match the associated sirtaqui_update_N()
+ *
+ * @param function $caller_function
+ *   The name of the function that called us.
+ *   Used internally, if requesting a specific schema version.
+ */
+function sirtaqui_schema($caller_function = FALSE) {
+  static $get_current;
+  static $schemas = array();
+
+  // If called with no arguments, get the latest version of the schema.
+  if (!isset($get_current)) {
+    $get_current = $caller_function ? FALSE : TRUE;
+  }
+
+  // Generate a sorted list of available schema update functions.
+  if ($get_current || empty($schemas)) {
+    $get_current = FALSE;
+    $functions = get_defined_functions();
+    foreach ($functions['user'] as $function) {
+      if (strpos($function, 'sirtaqui_schema_') === 0) {
+        $version = substr($function, strlen('sirtaqui_schema_'));
+        if (is_numeric($version)) {
+          $schemas[] = $version;
+        }
+      }
+    }
+    if ($schemas) {
+      sort($schemas, SORT_NUMERIC);
+
+      // If a specific version was requested, drop any later
+      // updates from the sequence.
+      if ($caller_function) {
+        do {
+          $schema = array_pop($schemas);
+        } while ($schemas && $caller_function != 'sirtaqui_schema_'. $schema);
+      }
+    }
+  }
+
+  // Call sirtaqui_schema_<n>, for the highest available <n>.
+  if ($schema = array_pop($schemas)) {
+    $function = 'sirtaqui_schema_'. $schema;
+    return $function();
+  }
+
+  return array();
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function sirtaqui_schema_6000() {
+	
+	$schema = array();
+	
+	$schema['sirtaqui_content'] = array(
+		'description' => 'Stores sirtqui content type name and associated language',
+		'fields' => array(
+			'id' => array(
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'description' => 'Primary Key: Unique term ID.',
+			),
+			'content_name' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => '',
+				'description' => 'The content name.',
+			),
+			'content_type' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => '',
+				'description' => 'The content type',
+			),
+			'language' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => '',
+				'description' => 'The content language',
+			),
+			'module_id' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => '',
+				'description' => 'The sirtaqui ID',
+			),
+			'title_field' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => '',
+				'description' => 'The name of the field to extract title',
+			),
+		),
+		'primary key' => array('id'),
+	);
+	
+	return $schema;
+}
+
+/**
+ * Update a site to Drupal 6! Contains a bit of special code to detect
+ * if you've been running a beta version or something.
+ */
+function sirtaqui_update_6000() {
+  $ret = array();
+  if (db_table_exists('sirtaqui_content')) {
+    return $ret;
+  }
+
+  // This is mostly the same as drupal_install_schema, but it forces
+  // views_schema_6000() rather than the default sirtaqui_schema().
+  // This is important for processing subsequent table updates.
+  $schema = sirtaqui_schema_6000();
+  _drupal_initialize_schema('sirtaqui', $schema);
+
+  foreach ($schema as $name => $table) {
+    db_create_table($ret, $name, $table);
+  }
+  return $ret;
+}
+
+/**
+ * Scehma of the table for content listing
+ * 
+ */
+function sirtaqui_schema_6001() {
+	
+	$schema = sirtaqui_schema(__FUNCTION__);
+	
+	$schema['sirtaqui_content']['fields']['import_filters'] = array(
+	    'type' => 'text',
+	    'size' => 'big',
+		'not null' => TRUE,
+	    'description' => 'Serialized data being stored.',
+	);
+	
+	$schema['sirtaqui_content_listing'] = array(
+		'description' => 'Stores sirtqui content listings',
+		'fields' => array(
+			'id' => array(
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'description' => 'Primary Key: Unique term ID.',
+			),
+			'content_listing_name' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => '',
+				'description' => 'The listing name.',
+			),
+			'content_listing_type' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => '',
+				'description' => 'The listing type',
+			),
+			'description' => array(
+				'type' => 'text',
+				'size' => 'normal',
+				'not null' => FALSE,
+				'default' => '',
+				'description' => 'The listing description',
+			),
+			'sirtaqui_content' => array(
+				'type' => 'text',
+				'size' => 'normal',
+				'not null' => TRUE,
+				'default' => '',
+				'description' => 'The sirtaqui content listed in',
+			),
+			'filters' => array(
+				'type' => 'text',
+				'size' => 'big',
+				'not null' => TRUE,
+				'default' => '',
+				'description' => 'The sirtaqui content fields filtered to create the listing',
+			),
+			'exposed_fields' => array(
+				'type' => 'text',
+				'size' => 'big',
+				'default' => '',
+				'description' => 'The sirtaqui content fields exposed to create a search engine',
+			),
+		),
+		'primary key' => array('id'),
+	);
+	
+	return $schema;
+}
+
+/**
+ * Add a table for content listing
+ * 
+ */
+function sirtaqui_update_6001() {
+	$ret = array();
+	
+	$new_field = array(
+	    'type' => 'text',
+	    'size' => 'big',
+	    'description' => 'Serialized data being stored.',
+	    'not null' => TRUE,
+	);
+	
+	$schema = sirtaqui_schema_6001();
+	_drupal_initialize_schema('sirtaqui', $schema);
+	
+	db_create_table($ret, 'sirtaqui_content_listing', $schema['sirtaqui_content_listing']);
+	db_add_field($ret, 'sirtaqui_content', 'import_filters', $new_field);
+	
+	include 'sirtaqui_content_listing/sirtaqui_content_listing.listing_page.inc';
+	sirtaqui_content_listing_create_content_type();
+	
+	return $ret;
+}
+
+/**
+ * Schema of the table for search fields
+ *
+ */
+function sirtaqui_schema_6002() {
+
+	$schema = sirtaqui_schema(__FUNCTION__);
+
+	unset($schema['sirtaqui_content_listing']['fields']['exposed_fields']);
+	
+	$schema['sirtaqui_content_listing']['fields']['search_groups'] = array(
+		'type' => 'text',
+		'size' => 'big',
+		'default' => '',
+		'description' => 'The sirtaqui content fields groups',
+	);
+	
+	$schema['sirtaqui_search_field'] = array(
+		'description' => 'Stores sirtaqui indexed fields',
+		'fields' => array(
+			'id' => array(
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'description' => 'Primary Key: Unique field ID.',
+			),
+			'clid' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'description' => 'the content listing associated to this field',
+			),
+			'name' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => '',
+				'description' => 'The field name.',
+			),
+			'type' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => '',
+				'description' => 'The field type.',
+			),
+			'content_type' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => FALSE,
+				'default' => '',
+				'description' => 'The field content type.',
+			),
+			'display_mode' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => FALSE,
+				'default' => '',
+				'description' => 'The field display mode.',
+			),
+			'field_values' => array(
+				'type' => 'text',
+				'not null' => FALSE,
+				'default' => '',
+				'description' => 'Define values that appears in search engine for this field',
+			),
+			'gid' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => FALSE,
+				'default' => '',
+				'description' => 'Define the group of field in wich it appears.',
+			),
+		),
+		'primary key' => array('id'),
+		'indexes' => array(
+			'clid' => array('clid'),
+		),
+	);
+	
+	return $schema;
+}
+
+/**
+ * Add a table for search fields
+ *
+ */
+function sirtaqui_update_6002() {
+	$ret = array();
+	
+	$new_field = array(
+		'type' => 'text',
+		'size' => 'big',
+		'default' => '',
+		'description' => 'The sirtaqui content fields groups',
+	);
+
+	$schema = sirtaqui_schema_6002();
+	_drupal_initialize_schema('sirtaqui', $schema);
+
+	db_create_table($ret, 'sirtaqui_search_field', $schema['sirtaqui_search_field']);
+	db_drop_field($ret, 'sirtaqui_content_listing', 'exposed_fields');
+	db_add_field($ret, 'sirtaqui_content_listing', 'search_groups', $new_field);
+
+	return $ret;
+}
+
+/**
+ * Schema of the table for search fields
+ *
+ */
+function sirtaqui_schema_6003() {
+
+	$schema = sirtaqui_schema(__FUNCTION__);
+
+	$schema['sirtaqui_search_field']['fields']['weight'] = array(
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+		'default' => 0,
+		'description' => 'The field weight',
+	);
+	
+	return $schema;
+}
+
+/**
+ * Add a table for search fields
+ *
+ */
+function sirtaqui_update_6003() {
+	$ret = array();
+
+	$new_field = array(
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+		'default' => 0,
+		'description' => 'The field weight',
+	);
+
+	$schema = sirtaqui_schema_6003();
+	_drupal_initialize_schema('sirtaqui', $schema);
+
+	db_add_field($ret, 'sirtaqui_search_field', 'weight', $new_field);
+
+	return $ret;
+}
+
+/**
+ * Schema of the table for search fields
+ *
+ */
+function sirtaqui_schema_6004() {
+
+	$schema = sirtaqui_schema(__FUNCTION__);
+
+	$schema['sirtaqui_content']['fields']['enable'] = array(
+		'type' => 'varchar',
+		'length' => 255,
+		'not null' => TRUE,
+		'default' => 'daily',
+		'description' => 'Content update frequency',
+	);
+	
+	return $schema;
+}
+
+/**
+ * Add a table for search fields
+ *
+ */
+function sirtaqui_update_6004() {
+	$ret = array();
+
+	$new_field = array(
+		'type' => 'varchar',
+		'length' => 255,
+		'not null' => TRUE,
+		'default' => 'daily',
+		'description' => 'Content update frequency',
+	);
+
+	$schema = sirtaqui_schema_6004();
+	_drupal_initialize_schema('sirtaqui', $schema);
+
+	db_add_field($ret, 'sirtaqui_content', 'enable', $new_field);
+
+	return $ret;
+}
+
+/**
+ * Schema update
+ */
+function sirtaqui_schema_6005() {
+    
+    $schema = sirtaqui_schema(__FUNCTION__);
+    
+    $schema['sirtaqui_search_field']['fields']['params'] = array(
+        'type' => 'text',
+        'description' => 'Search field parameters',
+        'not null' => false,
+        'default' => '',
+    );
+    
+    return $schema;
+}
+
+/**
+ * Add field 'params' to {sirtaqui_search_field} 
+ */
+function sirtaqui_update_6005() {
+    $ret = array();
+    
+    $initial = serialize(array('form_region' => 'normal', 'enabled' => true));
+    
+    $new_field_spec = array(
+        'type' => 'text',
+        'description' => 'Search field parameters',
+        'not null' => false,
+        'default' => '',
+        'initial' => $initial,
+    );
+    
+    db_add_field($ret, 'sirtaqui_search_field', 'params', $new_field_spec);
+    
+    $req = "UPDATE sirtaqui_search_field SET type = CONCAT(type, '@sirtaqui')";
+    db_query($req);
+    
+    $req = "SELECT id, search_groups FROM {sirtaqui_content_listing}";
+    $result = db_query($req);
+    
+    while($row = db_fetch_array($result)) {        
+
+        $search_groups = unserialize($row['search_groups']);
+
+        if(empty($search_groups)) {continue;}
+
+        foreach($search_groups as &$search_group) {
+            $search_group['form_region'] = 'normal';
+            $search_group['enabled'] = true;
+        }
+
+        $req = "UPDATE {sirtaqui_content_listing} SET search_groups='%s' WHERE id=%d";
+        db_query($req, serialize($search_groups), $row['id']);
+    }
+    
+    return $ret;
+}
+
+
+/**
+ * Schema update
+ */
+function sirtaqui_schema_6006() {
+    $schema = sirtaqui_schema(__FUNCTION__);
+    
+    $schema['sirtaqui_search_field']['fields']['params'] = array(
+        'type' => 'text',
+        'description' => 'Search field parameters',
+        'not null' => false,
+        'default' => '',
+    );
+    
+    unset($schema['sirtaqui_search_field']);
+    
+    unset($schema['sirtaqui_content_listing']['fields']['search_groups']);
+    
+    $schema['sirtaqui_content_listing']['fields']['cache'] = array(
+        'type' => 'text',
+        'description' => 'Cache',
+        'not null' => false,
+        'default' => '',
+    );
+    
+    return $schema;
+}
+
+/**
+ * -> drop table sirtaqui_search_fields
+ * -> drop field sirtaqui_content_listing.search_groups
+ * -> add field sirtaqui_content_listing.cache
+ */
+function sirtaqui_update_6006() {
+    
+    $ret = array();
+    
+    db_drop_table($ret, 'sirtaqui_search_field');
+    
+    db_drop_field($ret, 'sirtaqui_content_listing', 'search_groups');
+    
+    $new_field_spec = array(
+        'type' => 'text',
+        'description' => 'Cache',
+        'not null' => false,
+        'default' => '',
+    );
+    
+    db_add_field($ret, 'sirtaqui_content_listing', 'cache', $new_field_spec);
+    
+    return $ret;
+}
+
+
+
+/**
+ * Schema update
+ */
+function sirtaqui_schema_6007() {
+	$schema = sirtaqui_schema(__FUNCTION__);
+
+	$schema['sirtaqui_content']['fields']['objettour_code'] = array(
+			'type' => 'varchar',
+			'length' => 255,
+			'description' => 'Tourinsoft OBJETTOUR_CODE',
+			'not null' => false,
+			'default' => '',
+	);
+
+	return $schema;
+}
+
+/**
+ * -> drop table sirtaqui_search_fields
+ * -> drop field sirtaqui_content_listing.search_groups
+ * -> add field sirtaqui_content_listing.cache
+ */
+function sirtaqui_update_6007() {
+
+	$ret = array();
+
+	$new_field_spec = array(
+			'type' => 'varchar',
+			'length' => 255,
+			'description' => 'Tourinsoft OBJETTOUR_CODE',
+			'not null' => false,
+			'default' => '',
+	);
+
+	db_add_field($ret, 'sirtaqui_content', 'objettour_code', $new_field_spec);
+
+	return $ret;
+}
+
+/**
+ * Schema update
+ */
+function sirtaqui_schema_6008() {
+    $schema = sirtaqui_schema(__FUNCTION__);
+    
+    $schema['sirtaqui_content_listing']['fields']['sorts'] = array(
+        'type' => 'text',
+        'description' => 'Sorts parameters',
+        'not null' => false,
+        'default' => '',
+    );
+    
+    return $schema;
+}
+
+/*
+ * Convertion des champs-f des filtres en champs-non-f
+ * Partition du champ filters de {scl}
+ * Ajout du champ 'sorts' à {scl}
+ */
+function sirtaqui_update_6008() {
+    
+    $ret = array();
+    
+    $req = "SELECT id, filters FROM {sirtaqui_content_listing}";
+    $result = db_query($req);
+
+    while($row = db_fetch_object($result)) {
+        $filters = unserialize($row->filters);    
+        $filters = array('filters' => $filters, 'advanced_filters' => array());
+        
+        foreach((array)$filters['filters'] as $content_type => $filter) {
+            foreach((array)$filter as $filter_field => $filter_value) {
+                $filters['filters'][$content_type][str_replace('field_f_', 'field_', $filter_field)] = $filter_value;
+                unset($filters['filters'][$content_type][$filter_field]);
+            }
+        }   
+        
+        $filters = serialize($filters);
+
+        $sub_req = "UPDATE {sirtaqui_content_listing} SET filters='%s' WHERE id=%d";
+        db_query($sub_req, $filters, $row->id);
+    }
+    
+    $ret[] = array('success' => true, 'query' => "Records {sirtaqui_content_listing}.filters have been partitioned.");
+    $ret[] = array('success' => true, 'query' => "Field-f from records of {sirtaqui_content_listing}.filters have been converted.");
+    
+    $new_field_spec = array(
+        'type' => 'text',
+        'description' => 'Sorts parameters',
+        'not null' => false,
+        'default' => '',
+    );
+    
+    db_add_field($ret, 'sirtaqui_content_listing', 'sorts', $new_field_spec);
+    
+    return $ret;
+}
+
+/**
+ * Schema update
+ */
+function sirtaqui_schema_6009() {
+    $schema = sirtaqui_schema(__FUNCTION__);
+    
+    $schema['sirtaqui_content']['fields']['params'] = array(
+        'type' => 'text',
+        'description' => 'Sirtaqui content parameters',
+        'not null' => false,
+        'default' => '',
+    );
+        
+    return $schema;
+}
+
+/**
+ * -> add column sirtaqui_content.params
+ */
+function sirtaqui_update_6009() {
+    
+    $ret = array();
+        
+    $new_field_spec = array(
+        'type' => 'text',
+        'description' => 'Sirtaqui content parameters',
+        'not null' => false,
+        'default' => '',
+    );
+    
+    db_add_field($ret, 'sirtaqui_content', 'params', $new_field_spec);
+    
+    return $ret;
+}

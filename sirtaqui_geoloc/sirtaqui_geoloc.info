@@ -1,0 +1,6 @@
+core          = "6.x"
+description   = "Provides geolocation functionalities"
+name          = "Sirtaqui geolocation"
+package       = "Saison d'Or"
+
+dependencies[] = sirtaqui_content_listing

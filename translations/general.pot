@@ -1,0 +1,489 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  sirtaqui.admin.inc: n/a
+#  sirtaqui.module: n/a
+#  sirtaqui_content_listing/sirtaqui_content_listing.module: n/a
+#  sirtaqui.info: n/a
+#  sirtaqui_content_generator/sirtaqui_content_generator.info: n/a
+#  sirtaqui_content_listing/sirtaqui_content_listing.info: n/a
+#  sirtaqui_import/sirtaqui_import.info: n/a
+#  sirtaqui_content_generator/sirtaqui_content_generator.content.inc: n/a
+#  sirtaqui_import/sirtaqui_import.admin.inc: n/a
+#  sirtaqui_content_listing/sirtaqui_content_listing.admin.inc: n/a
+#  sirtaqui_content_generator/sirtaqui_content_generator.module: n/a
+#  sirtaqui_content_listing/sirtaqui_content_listing.views.inc: n/a
+#  sirtaqui_import/sirtaqui_import.module: n/a
+#  sirtaqui_import/filters/sirtaqui_filters.inc: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2012-01-31 19:22+0100\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: sirtaqui.admin.inc:21
+msgid "SIRTAqui feeds base url"
+msgstr ""
+
+#: sirtaqui.admin.inc:24
+msgid "Get the SIRTAqui webservice base url."
+msgstr ""
+
+#: sirtaqui.admin.inc:28
+msgid "Feed request for content field list"
+msgstr ""
+
+#: sirtaqui.admin.inc:31
+msgid "Get the webservice request to have the content field list. If more than one request, separate with a comma (,)"
+msgstr ""
+
+#: sirtaqui.admin.inc:35
+msgid "Feed request for content listing"
+msgstr ""
+
+#: sirtaqui.admin.inc:38
+msgid "Get the webservice request to have the content listing."
+msgstr ""
+
+#: sirtaqui.admin.inc:42
+msgid "Feed request for content details"
+msgstr ""
+
+#: sirtaqui.admin.inc:45
+msgid "Get the webservice request to have the content details."
+msgstr ""
+
+#: sirtaqui.admin.inc:49
+msgid "Url for media content"
+msgstr ""
+
+#: sirtaqui.admin.inc:52
+msgid "Get the begin url of all media download."
+msgstr ""
+
+#: sirtaqui.module:16 sirtaqui_content_listing/sirtaqui_content_listing.module:16
+msgid "administer sirtaqui"
+msgstr ""
+
+#: sirtaqui.module:31
+msgid "SIRTAqui feeds"
+msgstr ""
+
+#: sirtaqui.info:0
+msgid "Sirtaqui"
+msgstr ""
+
+#: sirtaqui.info:0
+msgid "Give all managing options for Sirtaqui"
+msgstr ""
+
+#: sirtaqui.info:0 sirtaqui_content_generator/sirtaqui_content_generator.info:0 sirtaqui_content_listing/sirtaqui_content_listing.info:0 sirtaqui_import/sirtaqui_import.info:0
+msgid "Saison d'Or"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:18
+msgid "Thank you to configure the SIRTAqui module before use it."
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:26;96 sirtaqui_import/sirtaqui_import.admin.inc:73;152;221;293
+msgid "Module ID"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:32
+msgid "Rechercher"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:77
+msgid "Content detail"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:81
+msgid "Content name"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:86
+msgid "Content type"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:88
+msgid "Content name in the drupal system."
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:92
+msgid "Content description"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:103;109
+msgid "Champs utilisé pour le titre"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:117
+msgid "Content fields"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:122;354
+msgid "-- Create new --"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:167 sirtaqui_import/sirtaqui_import.admin.inc:227
+msgid "Save"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:198 sirtaqui_import/sirtaqui_import.admin.inc:105;248
+msgid "Error while saving sirtaqui content %content"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:328
+msgid "No fields available."
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:331 sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:979
+msgid "Weight"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:331
+msgid "Enable"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:331
+msgid "Name"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:331
+msgid "Field Type"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:331
+msgid "Vocabulary"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:427
+msgid "Multiple textfield"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:428
+msgid "Text field"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.content.inc:429
+msgid "Text area"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.module:16
+msgid "administer sirtaqui_content_generator"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.module:37
+msgid "Select fields"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.module:52
+msgid "Generate Sirtaqui contents"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.module:53
+msgid "Create content type thanks to sirtaqui feeds"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.info:0
+msgid "Sirtaqui Content Generator"
+msgstr ""
+
+#: sirtaqui_content_generator/sirtaqui_content_generator.info:0
+msgid "Create content throw given feeds"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:32 sirtaqui_import/sirtaqui_import.admin.inc:50;193
+msgid "edit"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:33 sirtaqui_import/sirtaqui_import.admin.inc:52;194
+msgid "delete"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:34
+msgid "generate view"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:68
+msgid "No listing available."
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:71;977
+msgid "Listing"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:71;107;366;977
+msgid "Description"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:72;977 sirtaqui_import/sirtaqui_import.admin.inc:153;294
+msgid "Actions"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:102;360
+msgid "Listing Name"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:116;376
+msgid "Content type(s)"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:128;393
+msgid "Delete last content type"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:138;298;403
+msgid "Add content type"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:148
+msgid "Create listing"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:179;448
+msgid "Error while saving sirtaqui content listing %content"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:413
+msgid "Save listing"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:493;727;813
+msgid "-- Select a value --"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:506
+msgid "Filters for "
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:582
+msgid "Add filter"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:586
+msgid "Save filters"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:633;934
+msgid "Error while saving sirtaqui content listing "
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:806
+msgid "Search is disabled for filtered listing"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:864;1034 sirtaqui_import/sirtaqui_import.admin.inc:367
+msgid "Delete"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:898
+msgid "Save and Add criterias"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:974
+msgid "No criterias available."
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:1023 sirtaqui_import/sirtaqui_import.admin.inc:356
+msgid "Bad argument given"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:1031
+msgid "Are you sure you want to delete the content listing %title?"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:1033 sirtaqui_import/sirtaqui_import.admin.inc:366
+msgid "This action cannot be undone."
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:1035 sirtaqui_import/sirtaqui_import.admin.inc:368
+msgid "Cancel"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:1047;1049
+msgid "Deleted sirtaqui content listing %label."
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.admin.inc:1049
+msgid "sirtaqui_content_listing"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.views.inc:78
+msgid "Views was generated for %content"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.module:54
+msgid "SIRTAqui contents listing"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.module:63
+msgid "Content listings"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.module:70
+msgid "SIRTAqui create contents listing"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.module:94
+msgid "SIRTAqui edit contents listing"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.module:103
+msgid "Edit contents listing"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.module:110
+msgid "Filters"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.module:120
+msgid "Search engine"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.module:159
+msgid "SIRTAqui delete content listing"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.module:168
+msgid "SIRTAqui generate content listing view"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.info:0
+msgid "Sirtaqui content listing"
+msgstr ""
+
+#: sirtaqui_content_listing/sirtaqui_content_listing.info:0
+msgid "Create SIRTAqui content listing with SIRTAqui feeds"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:51
+msgid "edit filters"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:53;195
+msgid "import"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:54
+msgid "force update"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:59;205
+msgid "Content Name"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:66;152;293
+msgid "Language"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:78
+msgid "Add"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:109
+msgid "Sirtaqui content %content has been created with language %language"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:140;281
+msgid "No themes available."
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:152;293
+msgid "Content"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:213
+msgid "Content language"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:252
+msgid "Sirtaqui content %content has been updated with language %language"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:364
+msgid "Are you sure you want to delete the content %title?"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:380;382
+msgid "Deleted sirtaqui content %label."
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:417
+msgid "Access denied"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:492
+msgid "Content successfully created"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.admin.inc:382
+msgid "sirtaqui_import"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.module:16
+msgid "site content sirtaqui_import"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.module:52
+msgid "SIRTAqui contents"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.module:61;79;88;96;105
+msgid "SIRTAqui feeds import"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.module:70
+msgid "Content import filters"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.info:0
+msgid "Sirtaqui import"
+msgstr ""
+
+#: sirtaqui_import/sirtaqui_import.info:0
+msgid "Import content to already created SIRTAqui content"
+msgstr ""
+
+#: sirtaqui_import/filters/sirtaqui_filters.inc:31;40
+msgid "The"
+msgstr ""
+
+#: sirtaqui_import/filters/sirtaqui_filters.inc:34;43
+msgid "From the"
+msgstr ""
+
+#: sirtaqui_import/filters/sirtaqui_filters.inc:34;43
+msgid "to the"
+msgstr ""
+
+#: sirtaqui_import/filters/sirtaqui_filters.inc:51;52;55;58;67;68;71;74;218
+msgid "from"
+msgstr ""
+
+#: sirtaqui_import/filters/sirtaqui_filters.inc:51;52;55;58;67;68;71;74;219
+msgid "to"
+msgstr ""
+
+#: sirtaqui_import/filters/sirtaqui_filters.inc:51;67
+msgid "and"
+msgstr ""
+
+#: sirtaqui_import/filters/sirtaqui_filters.inc:61;77
+msgid "at"
+msgstr ""
+
+#: sirtaqui_import/filters/sirtaqui_filters.inc:84
+msgid "Closure days"
+msgstr ""
+

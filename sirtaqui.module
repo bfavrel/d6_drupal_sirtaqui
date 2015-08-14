@@ -1,0 +1,358 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * It Generates content thinks sirtaqui feeds
+ *
+ * @author Benoit Favrel
+ */
+
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the module
+*/
+function sirtaqui_perm() {
+  return array('administer sirtaqui', 'configure sirtaqui');
+}
+
+/**
+ * Implementation of hook_init()
+ */
+function sirtaqui_init() {
+
+	define('FIELD_MAX_LENGTH', 32);
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function sirtaqui_menu() {
+
+    $items = array();
+    
+    $items['fnid/%'] = array(
+        'page callback' => 'sirtaqui_reach_node_by_fnid',
+        'page arguments' => array(1),
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['admin/settings/sirtaqui'] = array(
+        'title' => 'SIRTAqui',
+        'type' => MENU_NORMAL_ITEM,
+        'access arguments' => array('configure sirtaqui'),
+    );
+
+    // type du premier menu du prochain module à être traité
+    $menu_type = MENU_DEFAULT_LOCAL_TASK;
+
+    $settings_providers = module_implements('sirtaqui_settings', true);
+
+    foreach($settings_providers as $module) {
+
+        $settings = module_invoke($module, 'sirtaqui_settings');
+
+        $req = "SELECT info FROM {system} WHERE name='%s'";
+        $module_infos = unserialize(db_result(db_query($req, $module)));
+
+        // on récupère le premier menu et on le supprime de la liste
+        reset($settings);
+        $first_item_key = key($settings);
+        $first_item = array_shift($settings);
+
+        // on corrige son chemin si besoin est
+        $first_item['file path'] = !empty($first_item['file']) && empty($first_item['file path']) ?
+                                            drupal_get_path('module', $module) :
+                                            $first_item['file path'];
+
+        // premier module à être traité ? on assigne les infos du premier menu à la racine,
+        // et on ne conserve que le titre
+        if(!isset($items['admin/settings/sirtaqui']['page callback'])) {
+            $items['admin/settings/sirtaqui'] += $first_item;
+            $first_item = array('title' => $first_item['title']);
+        }
+
+        // pour éviter l'ordre alphabétique automatique
+        $weight = 0;
+
+        // on crée la tâche locale (par défaut si c'est le premier module) relative à la racine
+        // et on finit d'hydrater avec les infos du premier menu
+        $items['admin/settings/sirtaqui/' . $module] = array(
+            'title' => $module,
+            'type' => $menu_type,
+            'access arguments' => array('configure sirtaqui'),
+            'weight' => $weight++,
+        ) + $first_item;
+
+        // pour les autres modules
+        $menu_type = MENU_LOCAL_TASK;
+
+        // on crée la tâche par défaut relative au module à partir du premier menu
+        $items['admin/settings/sirtaqui/' . $module . '/' . $first_item_key] = array(
+            'title' => $first_item['title'],
+            'type' => MENU_DEFAULT_LOCAL_TASK,
+            'access arguments' => array('configure sirtaqui'),
+        );
+
+        // on crée les tâches locales relative au module à partir des menus restants
+        foreach($settings as $key => $item) {
+
+            // on corrige le chemin, si besoin est
+            $item['file path'] = !empty($item['file']) && empty($item['file path']) ?
+                            drupal_get_path('module', $module) :
+                            $item['file path'];
+
+            $items['admin/settings/sirtaqui/' . $module . '/' . $key] = array(
+                'title' => $item['title'],
+                'type' => MENU_LOCAL_TASK,
+                'access arguments' => array('configure sirtaqui'),
+                'weight' => $weight++,
+            ) + $item;
+        }
+    }
+
+    return $items;
+}
+
+/**
+ * Redirect user to the node matching a SIRTAqui ID
+ * @param type $id
+ */
+function sirtaqui_reach_node_by_fnid($id) {
+    global $language;
+
+    $nid = db_result(db_query(
+            "SELECT fnid.nid FROM {content_fnid} AS fnid
+            LEFT JOIN {node} AS n ON n.nid=fnid.nid
+            WHERE fnid_value='%s' AND n.language='%s'",
+            $id, $language->language));
+
+    if(empty($nid)) {drupal_goto('');}
+
+    drupal_goto('node/' . $nid);
+}
+
+/**
+ *
+ * Make a soap request
+ * @param string $location
+ * @param string $request
+ * @param array $attrs
+ * @return a soap response
+ */
+function sirtaqui_make_soap_request($location, $request, $attrs = array()) {
+
+	$client = new SoapClient($location."?WSDL", array(	'soap_version' => SOAP_1_1,
+														"trace"=> 1, "exceptions" => 0));
+
+	if (!empty($attrs))
+		foreach($attrs as $key => $value)
+		{
+			$params[$key] = $value;
+		}
+
+	return call_user_method($request, $client, $params);
+}
+/**
+ * Implementation of hook_nodeapi()
+ * N'affiche pas le champs sirtaqui si le champs non sirtaqui a été modifié
+ */
+function sirtaqui_nodeapi(&$node, $op, $teaser, $page) {
+
+    if ($op == 'view' && preg_match('/sirtaqui_.*/', $node->type)) {
+        //krumo($node);
+        // Let field modules sanitize their data for output.
+        _content_field_invoke('sanitize', $node, $teaser, $page);
+
+        //-- DAVID : ça, je ne comprends pas à quoi ça sert :
+        // Merge fields.
+        //$additions = _content_field_invoke_default('view', $node, $teaser, $page);
+        //$node->content = array_merge((array) $node->content, $additions);
+        //--
+
+        foreach ($node->content as $name => $field) {
+
+            $field_name = normalize_field_name($name);
+            $field_f_name = normalize_field_name(preg_replace('#field_#', 'field_f_', $name));
+
+            if ((preg_match('#^field_(?!f_)[a-zA-Z0-9_]+$#', $name)) &&
+                            (!isset($field['field']['items'][0]['#item']['value']) && !isset($field['field']['items'][0]['#item']['filepath'])))
+            {
+                // sauvegarde le format du 'field_' défini dans le build_mode...
+                $formatter = $node->content[$field_name]['field']['items'][0]['#formatter'];
+                $theme_formatter = $node->content[$field_name]['field']['items'][0]['#theme'];
+
+                // copie les valeurs du field-f dans le field-non-f de la section 'content'
+                $node->content[$field_name]['field']['items'] = $node->content[$field_f_name]['field']['items'];
+                // copie les valeurs du field-f dans le fieldnon-f du node
+                $node->$field_name = $node->$field_f_name;
+
+                // ... et le restitue
+                $node->content[$field_name]['field']['items'][0]['#formatter'] = $formatter;
+                $node->content[$field_name]['field']['items'][0]['#theme'] = $theme_formatter;
+            }
+
+            unset($node->$field_f_name);
+            unset($node->content[$field_f_name]);
+        }
+    }
+}
+/**
+ * Implementation of hook_form_alter()
+ * N'affiche pas les champs sirtaqui dans l'édition des contenus
+ */
+function sirtaqui_form_alter(&$form, &$form_state, $form_id) {
+
+	if ($form['#id'] == 'node-form' &&
+		preg_match('/sirtaqui_.*/', $form['type']['#value'])) {
+			foreach ($form as $name => $field){
+				if (preg_match('/field_f_.*/', $name)) {
+					//unset($form[$name]);
+					if ($form['#field_info'][$name]['type'] == 'content_taxonomy') {
+						$form['#field_info'][$name]['widget']['maxlength'] = 510;
+					}
+				}
+				elseif (preg_match('#^field_(?!f_)[a-zA-Z0-9_]+$#', $name)) {
+					if ($field['#theme'] == 'content_multiple_values' && isset($form[preg_replace('/field_/', 'field_f_', $name)])) {
+						$form[$name][0]['#autocomplete_path'] = 'admin/content/sirtaqui/content_listing/edit/js/autocomplete_field/'.$form['type']['#value'].'/'.preg_replace('/field_/', 'field_f_', $field['#field_name']);
+						if (isset($form[$name][1])) {
+							$form[$name][1]['#autocomplete_path'] = 'admin/content/sirtaqui/content_listing/edit/js/autocomplete_field/'.$form['type']['#value'].'/'.preg_replace('/field_/', 'field_f_', $field['#field_name']);
+						}
+					}
+					elseif (isset($form[preg_replace('/field_/', 'field_f_', $name)])) {
+						$form[$name]['#autocomplete_path'] = 'admin/content/sirtaqui/content_listing/edit/js/autocomplete_field/'.$form['type']['#value'].'/'.preg_replace('/field_/', 'field_f_', $field['#field_name']);
+					}
+				}
+			}
+	}
+}
+
+/***
+ * MISCELANEOUS
+*/
+
+function sirtaqui_content_fields_values($field_name, $content_type, $sirtaqui = false, $lang = '') {
+
+	global $language;
+
+	$old_language = $language;
+	$list_language = language_list();
+	if ($lang != '') {
+		$language = $list_language[$lang];
+	}
+	if (module_exists('i18n')) {
+		i18n_selection_mode('simple');
+	}
+	// Look for user added content
+	$table = content_database_info(content_fields($field_name));
+
+	$query = "SELECT DISTINCT n.nid, c.". $field_name ."_value FROM {". $table['table'] ."} c LEFT JOIN {node} n ON (c.nid = n.nid) WHERE n.type = '%s'";
+	$result = db_query(db_rewrite_sql($query), $content_type);
+
+	$values = array();
+	while ($value = db_fetch_array($result)) {
+		$values[$value[$field_name .'_value']] = $value[$field_name .'_value'];
+	}
+
+	// Look for sirtaqui content
+	if ($sirtaqui) {
+		$sirtaqui_field_name = normalize_field_name(preg_replace('/field_/', 'field_f_', $field_name));
+		$table = content_database_info(content_fields($sirtaqui_field_name));
+
+		if (!empty($table['table'])) {
+			$query = "SELECT DISTINCT ". $sirtaqui_field_name ."_value FROM {". $table['table'] ."} c LEFT JOIN {node} n ON (c.nid = n.nid) WHERE n.type = '%s'";
+
+			$result = db_query(db_rewrite_sql($query), $content_type);
+
+			while ($value = db_fetch_array($result)) {
+				$values[$value[$sirtaqui_field_name .'_value']] = $value[$sirtaqui_field_name .'_value'];
+			}
+		}
+	}
+
+	$language = $old_language;
+
+	return array_filter($values, function($var){return (trim($var) != "");});
+}
+
+/**
+ *
+ * Supprime les accents d'une chaine de caratères
+ * @param string $string
+ *
+ */
+function stripAccents($string){
+
+	$a = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ
+ßàáâãäåæçèéêëìíîïðñòóôõöøùúûýýþÿŔŕ';
+    $b = 'AAAAAAACEEEEIIIIDNOOOOOOUUUUy
+bsaaaaaaaceeeeiiiidnoooooouuuyybyRr';
+
+    $string = utf8_decode($string);
+    $string = strtr($string, utf8_decode($a), $b);
+
+    return utf8_encode($string);
+}
+
+/**
+ *
+ * Give the field name like it will be save in database
+ * @param string $field
+ */
+function normalize_field_name($field, $length = FIELD_MAX_LENGTH, $tolower = TRUE, $stripAccent = TRUE) {
+
+	if ($tolower)
+		$field = strtolower($field);
+
+	if ($stripAccent)
+		$field = stripAccents($field);
+
+	return truncate_utf8(
+				trim(
+					preg_replace('/ /', '_x0020_',
+						preg_replace('/\'/', '_x0027_',
+							preg_replace('/\(/', '_x0028_',
+								preg_replace('/\)/', '_x0029_',
+									preg_replace('#\/#', '_x002F_',
+										preg_replace('/-/', '_x002D_', $field)
+									)
+								)
+							)
+						)
+					)
+				), $length);
+}
+
+/**
+ * Traitement pour les champs de views des contenus SIRTAQUI
+ *
+ * @param array $vars
+ */
+function sirtaqui_preprocess_views_view_fields(&$vars) {
+
+    foreach ($vars['fields'] as $field => $params) {
+
+        // contiendra [1]->l'identifiant du champ et [2]->son suffixe
+        $field_attributs = array();
+
+        // le champ est de type 'field_' non 'f_'
+        if (preg_match('#^field_(?!f_)(.+)(_.+)$#', $field, $field_attributs)) {
+
+            // son champ sirtaqui existe
+            $f_sirtaqui = normalize_field_name('field_f_' . $field_attributs[1]) . $field_attributs[2];
+            if (array_key_exists($f_sirtaqui, $vars['fields'])) {
+
+                // le champ est vide
+                if($params->content == null) {
+
+                    // on remplace ses paramètres par ceux de son champ sirtaqui
+                    $vars['fields'][$field] = $vars['fields'][$f_sirtaqui];
+                }
+
+                // dans tous les cas, on supprime son champ sirtaqui
+                unset($vars['fields'][$f_sirtaqui]);
+            }
+        }
+    }
+}
